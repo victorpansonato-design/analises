@@ -1,0 +1,144 @@
+{
+  "_aviso": "DADOS FICTÍCIOS. Formato de exemplo do contrato (CasoDetalhe). Nunca use dados reais.",
+  "id": "c-000123",
+  "protocolo": "85123",
+  "tipo": "TRANSFERENCIA_EXTERNA",
+  "subtipo": null,
+  "etapa": "EM_ANALISE",
+  "etapaDesde": "2026-10-09T13:10:00-03:00",
+  "etapaAnterior": "PRE_ANALISE",
+  "candidato": {
+    "pessoaId": "p-000981",
+    "nome": "Marina Exemplo da Silva",
+    "ra": null,
+    "outroRa": null,
+    "cpfMascarado": "***.482.193-**",
+    "celular": "(11) 9****-4321",
+    "email": "marina.exemplo@example.com",
+    "optInWhatsapp": true
+  },
+  "destino": {
+    "cursoId": "adm",
+    "cursoNome": "Bacharelado em Administração",
+    "turno": "NOTURNO",
+    "modalidade": "PRESENCIAL",
+    "matrizId": "adm-20262",
+    "ciclo": "2027.1"
+  },
+  "origem": {
+    "iesNome": "Faculdade Fictícia de Gestão",
+    "cursoNome": "Gestão Empresarial",
+    "estudouForaNoPeriodo": null
+  },
+  "ingresso": {
+    "ano": 2027,
+    "semestre": 1,
+    "periodo": null
+  },
+  "responsavel": {
+    "id": "u-ana-01",
+    "nome": "Analista Exemplo Um"
+  },
+  "responsaveis": {
+    "consultor": {
+      "id": "u-con-01",
+      "nome": "Consultor Exemplo"
+    },
+    "analista": {
+      "id": "u-ana-01",
+      "nome": "Analista Exemplo Um"
+    },
+    "coordenador": {
+      "id": "u-coo-adm",
+      "nome": "Coordenação Exemplo Administração"
+    },
+    "matricula": null
+  },
+  "sla": {
+    "venceEm": "2026-10-10T09:10:00-03:00",
+    "alertaEm": "2026-10-09T17:34:00-03:00",
+    "pausadoAte": null
+  },
+  "pendencia": null,
+  "flags": {
+    "ouvidoria": false,
+    "escalado": false,
+    "preAnaliseFalhou": false
+  },
+  "reanalises": 0,
+  "versao": 7,
+  "contadores": {
+    "documentosObrigatorios": 3,
+    "documentosAceitos": 3,
+    "itensMatriz": 45,
+    "itensSemDecisao": 9,
+    "perguntasAbertas": 0
+  },
+  "resumoCongeladoEm": null,
+  "noGed": true,
+  "jornada": [
+    {
+      "etapa": "AGUARDANDO_DOCUMENTOS",
+      "entrouEm": "2026-10-06T10:02:00-03:00",
+      "saiuEm": "2026-10-08T19:40:00-03:00",
+      "por": {
+        "id": "u-con-01",
+        "nome": "Consultor Exemplo"
+      }
+    },
+    {
+      "etapa": "PRE_ANALISE",
+      "entrouEm": "2026-10-08T19:40:00-03:00",
+      "saiuEm": "2026-10-08T19:41:05-03:00",
+      "por": null
+    },
+    {
+      "etapa": "EM_ANALISE",
+      "entrouEm": "2026-10-09T13:10:00-03:00",
+      "saiuEm": null,
+      "por": {
+        "id": "u-ana-01",
+        "nome": "Analista Exemplo Um"
+      }
+    }
+  ],
+  "acoesDisponiveis": [
+    {
+      "acao": "CONCLUIR_ANALISE",
+      "habilitada": false,
+      "motivos": [
+        "Faltam 9 disciplinas sem decisão",
+        "Defina o período de ingresso"
+      ],
+      "exigeMotivo": false
+    },
+    {
+      "acao": "ENVIAR_COORDENACAO",
+      "habilitada": false,
+      "motivos": [
+        "Crie ao menos uma pergunta à coordenação em um item da análise"
+      ],
+      "exigeMotivo": false
+    },
+    {
+      "acao": "ENCERRAR_PERDIDO",
+      "habilitada": true,
+      "motivos": [],
+      "exigeMotivo": true
+    },
+    {
+      "acao": "CANCELAR",
+      "habilitada": true,
+      "motivos": [],
+      "exigeMotivo": true
+    },
+    {
+      "acao": "ALTERAR_DESTINO",
+      "habilitada": true,
+      "motivos": [],
+      "exigeMotivo": true
+    }
+  ],
+  "criadoEm": "2026-10-06T10:02:00-03:00",
+  "atualizadoEm": "2026-10-09T14:55:00-03:00"
+}

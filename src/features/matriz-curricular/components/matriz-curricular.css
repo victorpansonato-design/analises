@@ -1,0 +1,28 @@
+/*
+ * Cartões de horas do currículo: os mesmos tons da análise (complementares em amarelo, extensão em
+ * verde, eletivas em laranja), aqui com os tokens da interface para acompanhar o tema escuro. A CH
+ * total fica no azul da marca. Fundo tonal, sem borda e sem sombra.
+ */
+.matriz-horas {
+   background: var(--tom-fundo);
+   color: var(--tom-tinta);
+}
+.matriz-horas[data-tom="total"] {
+   --tom-fundo: var(--brand-soft);
+   --tom-tinta: var(--brand-text);
+}
+.matriz-horas[data-tom="extensao"] {
+   --tom-fundo: var(--success-soft);
+   --tom-tinta: oklch(40% 0.1 152);
+}
+.matriz-horas[data-tom="complementares"] {
+   --tom-fundo: var(--warn-soft);
+   --tom-tinta: var(--warn-ink);
+}
+.matriz-horas[data-tom="eletivas"] {
+   --tom-fundo: var(--risk-soft);
+   --tom-tinta: var(--risk-ink);
+}
+.dark .matriz-horas[data-tom="extensao"] {
+   --tom-tinta: oklch(80% 0.11 152);
+}

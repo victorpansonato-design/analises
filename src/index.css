@@ -1,0 +1,937 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap");
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+   /* DS regra 3: um raio de superfície (12 px) e a pílula para ação. */
+   --radius-xs: 6px;
+   --radius-sm: 8px;
+   --radius-md: var(--radius);
+   --radius-lg: var(--radius);
+   --radius-xl: var(--radius);
+   --radius-2xl: var(--radius);
+
+   --color-background: var(--background);
+   --color-foreground: var(--foreground);
+   --color-surface: var(--surface);
+   --color-surface-foreground: var(--surface-foreground);
+   --color-shell: var(--shell);
+   --color-shell-foreground: var(--shell-foreground);
+   --color-canvas: var(--canvas);
+   --color-canvas-foreground: var(--canvas-foreground);
+   --color-card: var(--card);
+   --color-card-foreground: var(--card-foreground);
+   --color-popover: var(--popover);
+   --color-popover-foreground: var(--popover-foreground);
+   --color-primary: var(--primary);
+   --color-primary-foreground: var(--primary-foreground);
+   --color-primary-soft: var(--primary-soft);
+   --color-secondary: var(--secondary);
+   --color-secondary-foreground: var(--secondary-foreground);
+   --color-muted: var(--muted);
+   --color-muted-foreground: var(--muted-foreground);
+   --color-accent: var(--accent);
+   --color-accent-foreground: var(--accent-foreground);
+   --color-accent-soft: var(--accent-soft);
+   --color-destructive: var(--destructive);
+   --color-destructive-foreground: var(--destructive-foreground);
+   --color-destructive-soft: var(--destructive-soft);
+   --color-success: var(--success);
+   --color-success-foreground: var(--success-foreground);
+   --color-success-soft: var(--success-soft);
+   --color-warning: var(--warning);
+   --color-warning-foreground: var(--warning-foreground);
+   --color-warning-soft: var(--warning-soft);
+   --color-border: var(--border);
+   --color-border-strong: var(--border-strong);
+   --color-input: var(--input);
+   --color-ring: var(--ring);
+   --color-chart-1: var(--chart-1);
+   --color-chart-2: var(--chart-2);
+   --color-chart-3: var(--chart-3);
+   --color-chart-4: var(--chart-4);
+   --color-chart-5: var(--chart-5);
+   --color-viz-1: var(--viz-1);
+   --color-viz-2: var(--viz-2);
+   --color-viz-3: var(--viz-3);
+   --color-sidebar: var(--sidebar);
+   --color-sidebar-foreground: var(--sidebar-foreground);
+   --color-sidebar-primary: var(--sidebar-primary);
+   --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+   --color-sidebar-accent: var(--sidebar-accent);
+   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+   --color-sidebar-border: var(--sidebar-border);
+   --color-sidebar-ring: var(--sidebar-ring);
+
+   /* Ponte de tokens do design system (docs/14 ADR-003). O DS escreve; o template responde. */
+   --color-workspace: var(--workspace);
+   --color-ink: var(--ink);
+   --color-ink-2: var(--ink-2);
+   --color-ink-3: var(--ink-3);
+   --color-ink-4: var(--ink-4);
+   --color-hairline: var(--hairline);
+   --color-hairline-strong: var(--hairline-strong);
+   --color-surface-2: var(--surface-2);
+   --color-surface-3: var(--surface-3);
+   --color-surface-hover: var(--surface-hover);
+   --color-brand: var(--brand);
+   --color-brand-hover: var(--brand-hover);
+   --color-brand-soft: var(--brand-soft);
+   --color-brand-text: var(--brand-text);
+   --color-on-brand: var(--on-brand);
+   --color-ok: var(--ok);
+   --color-ok-ink: var(--ok-ink);
+   --color-warn: var(--warn);
+   --color-warn-ink: var(--warn-ink);
+   --color-warn-soft: var(--warn-soft);
+   --color-risk: var(--risk);
+   --color-risk-ink: var(--risk-ink);
+   --color-risk-soft: var(--risk-soft);
+   --color-crit: var(--crit);
+   --color-crit-ink: var(--crit-ink);
+   --color-crit-soft: var(--crit-soft);
+   --color-info: var(--info);
+   --color-focus: var(--focus);
+   --color-track: var(--track);
+   --color-skeleton: var(--skeleton);
+   --color-scrim: var(--scrim);
+
+   --font-sans: "Inter", system-ui, sans-serif;
+   --font-display: "JetBrains Mono", ui-monospace, monospace;
+   --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+   --shadow-hairline: 0 0 0 1px oklch(39.341% 0.16812 263.91 / 8%);
+   --shadow-card: 0 2px 8px -2px oklch(39.341% 0.16812 263.91 / 5%), 0 0 0 1px oklch(39.341% 0.16812 263.91 / 5%);
+   --shadow-elevated: 0 8px 24px -6px oklch(39.341% 0.16812 263.91 / 9%), 0 0 0 1px oklch(39.341% 0.16812 263.91 / 5%);
+
+   --shadow-2xs: 0 1px 2px oklch(39.341% 0.16812 263.91 / 4%);
+   --shadow-xs: 0 2px 4px -1px oklch(39.341% 0.16812 263.91 / 5%);
+   --shadow-sm: 0 2px 6px -1px oklch(39.341% 0.16812 263.91 / 6%), 0 1px 2px -1px oklch(39.341% 0.16812 263.91 / 4%);
+   --shadow: var(--shadow-sm);
+   --shadow-md: 0 6px 14px -3px oklch(39.341% 0.16812 263.91 / 7%), 0 2px 5px -2px oklch(39.341% 0.16812 263.91 / 5%);
+   --shadow-lg: 0 12px 28px -6px oklch(39.341% 0.16812 263.91 / 9%), 0 4px 10px -4px oklch(39.341% 0.16812 263.91 / 5%);
+   --shadow-xl: 0 20px 40px -8px oklch(39.341% 0.16812 263.91 / 11%), 0 8px 16px -8px oklch(39.341% 0.16812 263.91 / 6%);
+   --shadow-2xl: 0 32px 64px -12px oklch(39.341% 0.16812 263.91 / 14%);
+
+   /* DS regra 5: sombra só no que flutua (modal, drawer, popover, toast, tooltip). */
+   --shadow-overlay: var(--overlay-shadow);
+
+   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+:root {
+   --radius: 0.75rem;
+
+   /* Brand */
+   --brand-blue: oklch(39.341% 0.16812 263.91);
+   --brand-blue-strong: oklch(32% 0.17 263.91);
+   --brand-blue-soft: oklch(95% 0.025 263.91);
+   --brand-yellow: oklch(82% 0.165 86);
+   --brand-yellow-strong: oklch(72% 0.155 82);
+   --brand-yellow-soft: oklch(96% 0.05 95);
+
+   /* Neutrals tintados em direção ao azul */
+   --background: oklch(99.2% 0.003 264);
+   --foreground: oklch(18% 0.025 264);
+   --surface: oklch(98.621% 0.00693 248.267);
+   --surface-foreground: oklch(18% 0.025 264);
+
+   /* Shell = moldura do app (sidebar + respiro). Canvas = janela do conteúdo (shadcn). */
+   --shell: oklch(95.8% 0.008 264);
+   --shell-foreground: oklch(22% 0.03 264);
+   --canvas: oklch(100% 0 0);
+   --canvas-foreground: oklch(18% 0.025 264);
+
+   --card: oklch(100% 0 0);
+   --card-foreground: oklch(18% 0.025 264);
+   --popover: oklch(100% 0 0);
+   --popover-foreground: oklch(18% 0.025 264);
+
+   --primary: var(--brand-blue);
+   --primary-foreground: oklch(99% 0.005 264);
+   --primary-soft: var(--brand-blue-soft);
+
+   --secondary: oklch(95.5% 0.008 264);
+   --secondary-foreground: oklch(22% 0.03 264);
+
+   --muted: oklch(96.5% 0.006 264);
+   --muted-foreground: oklch(48% 0.022 264);
+
+   --accent: var(--brand-yellow);
+   --accent-foreground: oklch(22% 0.04 86);
+   --accent-soft: var(--brand-yellow-soft);
+
+   --destructive: oklch(58% 0.21 27);
+   --destructive-foreground: oklch(99% 0.005 264);
+   --destructive-soft: oklch(96% 0.03 27);
+
+   --success: oklch(56% 0.13 152);
+   --success-foreground: oklch(99% 0.005 264);
+   --success-soft: oklch(95% 0.04 152);
+
+   --warning: var(--brand-yellow-strong);
+   --warning-foreground: oklch(30% 0.08 82);
+   --warning-soft: var(--brand-yellow-soft);
+
+   --border: oklch(92% 0.01 264);
+   --border-strong: oklch(86% 0.014 264);
+   --input: oklch(92% 0.01 264);
+   --ring: oklch(55% 0.13 263.91);
+
+   --chart-1: var(--brand-blue);
+   --chart-2: var(--brand-yellow);
+   --chart-3: oklch(60% 0.13 200);
+   --chart-4: oklch(56% 0.13 152);
+   --chart-5: oklch(58% 0.21 27);
+
+   /* A sidebar faz parte da moldura: herda --shell para fundir com o fundo. */
+   --sidebar: var(--shell);
+   --sidebar-foreground: var(--shell-foreground);
+   --sidebar-primary: var(--brand-blue);
+   --sidebar-primary-foreground: oklch(99% 0.005 264);
+   --sidebar-accent: oklch(92% 0.014 264);
+   --sidebar-accent-foreground: oklch(22% 0.03 264);
+   --sidebar-border: oklch(90% 0.014 264);
+   --sidebar-ring: var(--brand-blue);
+}
+
+.dark {
+   --background: oklch(15% 0.022 264);
+   --foreground: oklch(96% 0.006 264);
+   --surface: oklch(19% 0.025 264);
+   --surface-foreground: oklch(96% 0.006 264);
+
+   /* No escuro a moldura afunda e o conteúdo sobe, mantendo a leitura de janela. */
+   --shell: oklch(12.5% 0.02 264);
+   --shell-foreground: oklch(92% 0.006 264);
+   --canvas: oklch(19.5% 0.026 264);
+   --canvas-foreground: oklch(96% 0.006 264);
+
+   --card: oklch(20% 0.028 264);
+   --card-foreground: oklch(96% 0.006 264);
+   --popover: oklch(20% 0.028 264);
+   --popover-foreground: oklch(96% 0.006 264);
+
+   --primary: oklch(65% 0.15 263.91);
+   --primary-foreground: oklch(15% 0.025 264);
+   --primary-soft: oklch(28% 0.08 263.91);
+
+   --secondary: oklch(24% 0.03 264);
+   --secondary-foreground: oklch(96% 0.006 264);
+
+   --muted: oklch(22% 0.025 264);
+   --muted-foreground: oklch(68% 0.018 264);
+
+   --accent: oklch(82% 0.165 86);
+   --accent-foreground: oklch(18% 0.04 86);
+   --accent-soft: oklch(28% 0.07 86);
+
+   --destructive: oklch(65% 0.2 27);
+   --destructive-foreground: oklch(96% 0.006 264);
+   --destructive-soft: oklch(28% 0.08 27);
+
+   --success: oklch(68% 0.14 152);
+   --success-foreground: oklch(15% 0.025 264);
+   --success-soft: oklch(26% 0.05 152);
+
+   --warning: oklch(75% 0.16 86);
+   --warning-foreground: oklch(84% 0.06 92);
+   --warning-soft: oklch(28% 0.07 86);
+
+   --border: oklch(26% 0.028 264);
+   --border-strong: oklch(34% 0.03 264);
+   --input: oklch(26% 0.028 264);
+   --ring: oklch(65% 0.15 263.91);
+
+   --chart-1: oklch(65% 0.15 263.91);
+   --chart-2: oklch(82% 0.165 86);
+   --chart-3: oklch(70% 0.13 200);
+   --chart-4: oklch(68% 0.14 152);
+   --chart-5: oklch(65% 0.2 27);
+
+   --sidebar: var(--shell);
+   --sidebar-foreground: var(--shell-foreground);
+   --sidebar-primary: oklch(65% 0.15 263.91);
+   --sidebar-primary-foreground: oklch(15% 0.025 264);
+   --sidebar-accent: oklch(17.5% 0.024 264);
+   --sidebar-accent-foreground: oklch(92% 0.006 264);
+   --sidebar-border: oklch(21% 0.026 264);
+   --sidebar-ring: oklch(65% 0.15 263.91);
+}
+
+/* ── Ponte do design system (docs/14 ADR-003) ──────────────────────────────────────────────────
+   Depois do :root e do .dark do template. --surface e --canvas mantêm o sentido do template
+   (o shadcn depende deles); o "canvas" do DS aqui se chama --workspace. */
+:root {
+   --workspace: var(--shell);
+   --ink: var(--foreground);
+   --ink-2: oklch(36% 0.025 264);
+   --ink-3: var(--muted-foreground);
+   --ink-4: oklch(62% 0.018 264);
+   --hairline: var(--border);
+   --hairline-strong: var(--border-strong);
+   --surface-2: var(--muted);
+   --surface-3: oklch(93.5% 0.009 264);
+   --surface-hover: oklch(97.5% 0.005 264);
+   --brand: var(--brand-blue);
+   --brand-hover: var(--brand-blue-strong);
+   --brand-soft: var(--brand-blue-soft);
+   --brand-text: var(--brand-blue);
+   --on-brand: var(--primary-foreground);
+   --ok: var(--ink-3);
+   --ok-ink: var(--ink-2);
+   --warn: oklch(62% 0.13 80);
+   --warn-ink: oklch(46% 0.1 78);
+   --warn-soft: var(--warning-soft);
+   --risk: oklch(58% 0.14 60);
+   --risk-ink: oklch(46% 0.12 58);
+   --risk-soft: oklch(96% 0.03 70);
+   --crit: var(--destructive);
+   --crit-ink: oklch(48% 0.19 27);
+   --crit-soft: var(--destructive-soft);
+   --info: var(--brand-blue);
+   --focus: var(--ring);
+   --track: var(--border);
+   --skeleton: oklch(94% 0.008 264);
+   --scrim: oklch(18% 0.025 264 / 0.4);
+   --overlay-shadow:
+      0 1px 2px oklch(18% 0.025 264 / 0.06), 0 8px 24px -6px oklch(18% 0.025 264 / 0.12), 0 24px 56px -12px oklch(18% 0.025 264 / 0.14);
+}
+
+.dark {
+   --ink-2: oklch(82% 0.01 264);
+   --ink-4: oklch(52% 0.016 264);
+   --surface-3: oklch(26% 0.026 264);
+   --surface-hover: oklch(23% 0.026 264);
+   /* No escuro o azul institucional puro some no fundo: a marca sobe de luminosidade e o texto
+      sobre ela continua claro (contraste AA). Ajuste previsto no ADR-003. */
+   --brand: oklch(52% 0.16 263.91);
+   --brand-hover: oklch(58% 0.16 263.91);
+   --brand-soft: var(--primary-soft);
+   --brand-text: oklch(78% 0.1 263.91);
+   --on-brand: oklch(99% 0.005 264);
+   --info: oklch(70% 0.13 263.91);
+   --warn: oklch(75% 0.12 80);
+   --warn-ink: oklch(82% 0.1 85);
+   --risk: oklch(72% 0.13 60);
+   --risk-ink: oklch(80% 0.11 62);
+   --risk-soft: oklch(26% 0.05 60);
+   --crit-ink: oklch(76% 0.15 27);
+   --skeleton: oklch(24% 0.025 264);
+   --scrim: oklch(8% 0.02 264 / 0.66);
+   --overlay-shadow: 0 1px 2px oklch(0% 0 0 / 0.5), 0 12px 32px -8px oklch(0% 0 0 / 0.6), 0 32px 64px -16px oklch(0% 0 0 / 0.7);
+}
+
+@layer base {
+   /* Toda borda nasce hairline (DS §7): quem desenha uma linha não precisa dizer a cor. */
+   * {
+      @apply border-hairline;
+   }
+   html {
+      font-feature-settings: "cv11", "ss01", "ss03";
+      background-color: var(--workspace);
+      -webkit-text-size-adjust: 100%;
+   }
+   body {
+      @apply bg-workspace text-ink antialiased;
+      font-family: var(--font-sans);
+      font-feature-settings: "cv11", "ss01";
+      letter-spacing: -0.006em;
+   }
+   h1,
+   h2,
+   h3 {
+      letter-spacing: -0.02em;
+   }
+   .font-display {
+      font-family: var(--font-display);
+      letter-spacing: -0.04em;
+      font-feature-settings: "ss01", "ss02", "calt", "zero";
+   }
+   /* Mono é para valor que alinha em coluna: figuras tabulares e sem tracking negativo. */
+   .font-mono,
+   [class*="font-mono"] {
+      font-family: var(--font-mono);
+      font-feature-settings: "tnum", "zero";
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 0;
+   }
+   button:not(:disabled) {
+      cursor: pointer;
+   }
+   /* Foco visível global (DS §13). Controles preenchidos somam um ring porque o fundo come o outline. */
+   :focus-visible {
+      outline: 2px solid var(--focus);
+      outline-offset: 2px;
+   }
+   :focus:not(:focus-visible) {
+      outline: none;
+   }
+   /* Amarelo institucional só como assinatura de marca (docs/14 ADR-002). */
+   ::selection {
+      background: var(--brand-yellow);
+      color: oklch(22% 0.04 86);
+   }
+   ::placeholder {
+      color: var(--ink-4);
+   }
+   .dark input[type="date"]::-webkit-calendar-picker-indicator,
+   .dark input[type="time"]::-webkit-calendar-picker-indicator,
+   .dark input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+      filter: invert(1) opacity(0.55);
+   }
+}
+
+@layer utilities {
+   /* Assinatura amarela sob o título da tela. */
+   .anchieta-rule {
+      position: relative;
+   }
+   .anchieta-rule::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      bottom: -1px;
+      height: 2px;
+      width: 48px;
+      background: var(--brand-yellow);
+      border-radius: 2px;
+   }
+
+   .tabular {
+      font-variant-numeric: tabular-nums;
+   }
+
+   /* Scrollbar presente, mas quieta. */
+   .scroll-slim {
+      scrollbar-width: thin;
+      scrollbar-color: var(--hairline-strong) transparent;
+   }
+   .scroll-slim::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+   }
+   .scroll-slim::-webkit-scrollbar-track {
+      background: transparent;
+   }
+   .scroll-slim::-webkit-scrollbar-thumb {
+      background: var(--hairline-strong);
+      border: 2px solid transparent;
+      background-clip: content-box;
+      border-radius: 9999px;
+   }
+
+   /* O scrim borra e dessatura o app atrás do overlay. */
+   .scrim {
+      background-color: var(--scrim);
+      backdrop-filter: blur(14px) saturate(115%);
+      -webkit-backdrop-filter: blur(14px) saturate(115%);
+   }
+
+   /* Skeleton com a geometria do conteúdo e um brilho que passa. */
+   .shimmer {
+      background-image: linear-gradient(90deg, var(--skeleton) 0%, var(--surface-3) 40%, var(--skeleton) 80%);
+      background-size: 200% 100%;
+      animation: an-shimmer 1.4s ease-in-out infinite;
+   }
+   @keyframes an-shimmer {
+      to {
+         background-position: -200% 0;
+      }
+   }
+
+   /* Indicador "ao vivo": uma pulsação calma. */
+   .pulse-dot {
+      position: relative;
+   }
+   .pulse-dot::after {
+      content: "";
+      position: absolute;
+      inset: -3px;
+      border-radius: 9999px;
+      border: 1.5px solid currentColor;
+      opacity: 0;
+      animation: an-pulse 2.4s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+   }
+   @keyframes an-pulse {
+      0% {
+         transform: scale(0.7);
+         opacity: 0.55;
+      }
+      70%,
+      100% {
+         transform: scale(1.45);
+         opacity: 0;
+      }
+   }
+
+   /* Segmented FÍSICO (DS §7): trilho afundado; a pastilha tem espessura e é um nó do Motion. */
+   .seg-track {
+      position: relative;
+      display: inline-flex;
+      padding: 3px;
+      border-radius: 9999px;
+      background-color: var(--surface-2);
+      box-shadow: inset 0 1px 2px oklch(18% 0.025 264 / 0.07);
+   }
+   .dark .seg-track {
+      box-shadow: inset 0 1px 2px oklch(0% 0 0 / 0.45);
+   }
+   .seg-thumb {
+      position: absolute;
+      inset: 0;
+      border-radius: 9999px;
+      background-color: var(--card);
+      box-shadow:
+         0 0 0 0.5px oklch(18% 0.025 264 / 0.06),
+         0 1px 1px oklch(18% 0.025 264 / 0.05),
+         0 3px 8px -2px oklch(18% 0.025 264 / 0.16),
+         inset 0 1px 0 0 oklch(100% 0 0 / 0.9);
+   }
+   .dark .seg-thumb {
+      background-color: var(--surface-3);
+      box-shadow:
+         0 0 0 0.5px oklch(0% 0 0 / 0.5),
+         0 2px 6px -1px oklch(0% 0 0 / 0.5),
+         inset 0 1px 0 0 oklch(100% 0 0 / 0.12);
+   }
+
+   @media (prefers-reduced-motion: reduce) {
+      .pulse-dot::after {
+         animation: none !important;
+         opacity: 0 !important;
+      }
+   }
+}
+
+@media (prefers-reduced-motion: reduce) {
+   *,
+   *::before,
+   *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+   }
+}
+
+/* Troca de tema: revelação circular (DS §10.21). O cross-fade padrão da View Transitions API é
+   desligado: a borda do círculo tem de ser limpa. */
+::view-transition-old(root),
+::view-transition-new(root) {
+   animation: none;
+   mix-blend-mode: normal;
+}
+::view-transition-old(root) {
+   z-index: 0;
+}
+::view-transition-new(root) {
+   z-index: 1;
+}
+
+/* Impressão da análise: só o conteúdo, sem moldura do app. */
+@media print {
+   body {
+      background: #fff;
+   }
+   /* Contêineres com rolagem cortariam o relatório: na impressão tudo flui na página. */
+   *,
+   *::before,
+   *::after {
+      overflow: visible !important;
+   }
+   .h-svh,
+   .h-full,
+   .min-h-0 {
+      height: auto !important;
+      min-height: 0 !important;
+   }
+}
+
+/* Sonner: o cartão do Toaster do DS (§10.19) é desenhado pelo app; aqui só a camada. */
+[data-sonner-toaster] {
+   z-index: 999999 !important;
+   pointer-events: none !important;
+}
+
+[data-sonner-toaster] [data-sonner-toast] {
+   pointer-events: auto !important;
+   user-select: text !important;
+   -webkit-user-select: text !important;
+}
+
+::-webkit-scrollbar {
+   width: 6px;
+   height: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+   background-color: var(--border-strong);
+   border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+   background-color: var(--muted-foreground);
+}
+
+.rdp-weekday {
+   font-weight: 500;
+}
+
+/*
+ * Categóricas dos gráficos de parte e todo (gestão). Ordem fixa, validada para daltonismo nos dois
+ * temas (adjacentes ΔE ≥ 9); o aqua fica abaixo de 3:1 no claro, por isso todo gráfico com estas
+ * cores traz legenda com o valor em texto. A quarta fatia é sempre neutra (`ink-4`).
+ */
+:root {
+   --viz-1: #1baf7a;
+   --viz-2: #eb6834;
+   --viz-3: #2a78d6;
+}
+.dark {
+   --viz-1: #199e70;
+   --viz-2: #d95926;
+   --viz-3: #3987e5;
+}
+
+/* Filas operacionais: cores reconhecíveis com contraste nos dois temas. */
+:root {
+   --fila-novas: oklch(52% 0.17 250);
+   --fila-documentos: oklch(48% 0.19 27);
+   --fila-analise: oklch(48% 0.16 44);
+   --fila-coordenacao: oklch(48% 0.12 75);
+   --fila-entregues: oklch(43% 0.12 117);
+   --fila-liberadas: oklch(42% 0.1 175);
+   --fila-concluidas: oklch(43% 0.04 235);
+   --fila-todas: oklch(46% 0.17 295);
+   --ink-4: oklch(45% 0.02 264);
+   --mat-sim: oklch(42% 0.13 149);
+   --mat-nao: oklch(49% 0.2 27);
+}
+.dark {
+   --ink-4: oklch(72% 0.02 264);
+   --mat-sim: oklch(78% 0.14 149);
+   --mat-nao: oklch(77% 0.15 27);
+}
+[data-tom="novas"] {
+   --fila-cor: var(--fila-novas);
+}
+[data-tom="documentos"] {
+   --fila-cor: var(--fila-documentos);
+}
+[data-tom="analise"] {
+   --fila-cor: var(--fila-analise);
+}
+[data-tom="coordenacao"] {
+   --fila-cor: var(--fila-coordenacao);
+}
+[data-tom="entregues"] {
+   --fila-cor: var(--fila-entregues);
+}
+[data-tom="liberadas"] {
+   --fila-cor: var(--fila-liberadas);
+}
+[data-tom="concluidas"] {
+   --fila-cor: var(--fila-concluidas);
+}
+[data-tom="todas"] {
+   --fila-cor: var(--fila-todas);
+}
+.fila-etapa {
+   position: relative;
+   overflow: hidden;
+   background: var(--fila-cor);
+   color: white;
+   min-height: 76px;
+}
+.fila-etapa:hover {
+   background: color-mix(in srgb, var(--fila-cor) 92%, black);
+}
+/*
+ * Processos (primeira camada da fila) e filas de etapa (segunda): todos na cor forte, com texto
+ * branco (contraste ≥ 4,5:1), selecionados ou não. O selecionado se destaca por um anel na própria
+ * cor, afastado por um respiro da cor do fundo, e pela etiqueta "Selecionado".
+ */
+:root {
+   --processo-todos: oklch(32% 0.03 264);
+   --processo-ingresso: oklch(47% 0.17 258);
+   --processo-interna: oklch(45% 0.1 190);
+   --processo-aproveitamento: oklch(46% 0.17 330);
+}
+[data-processo="todos"] {
+   --processo-cor: var(--processo-todos);
+}
+[data-processo="ingresso"] {
+   --processo-cor: var(--processo-ingresso);
+}
+[data-processo="interna"] {
+   --processo-cor: var(--processo-interna);
+}
+[data-processo="aproveitamento"] {
+   --processo-cor: var(--processo-aproveitamento);
+}
+.processo-aba {
+   background: var(--processo-cor);
+   color: white;
+}
+.processo-aba:hover {
+   background: color-mix(in srgb, var(--processo-cor) 90%, black);
+}
+.processo-aba .processo-icone {
+   background: rgb(255 255 255 / 16%);
+   color: white;
+}
+.processo-aba .processo-detalhe {
+   color: rgb(255 255 255 / 80%);
+}
+.processo-aba .processo-atrasados {
+   color: white;
+   background: rgb(255 255 255 / 16%);
+   padding: 1px 7px;
+   border-radius: 999px;
+}
+.processo-aba-ativa {
+   box-shadow:
+      0 0 0 2px var(--workspace),
+      0 0 0 4px var(--processo-cor);
+}
+.fila-etapa-ativa {
+   box-shadow:
+      0 0 0 2px var(--workspace),
+      0 0 0 4px var(--fila-cor);
+}
+.fila-selecionada {
+   color: inherit;
+   background: rgb(255 255 255 / 18%);
+   padding: 2px 6px;
+   border-radius: 999px;
+}
+
+/* O protocolo conserva as cores familiares das filas e separa identidade, navegação e ação. */
+.caso-aberto {
+   background: oklch(96.5% 0.014 250);
+}
+.dark .caso-aberto {
+   background: oklch(18% 0.022 250);
+}
+.caso-identidade {
+   background: var(--fila-novas);
+   color: white;
+   border-bottom: 0;
+}
+.grade-periodo {
+   background: var(--fila-novas);
+   color: white;
+}
+.grade-periodo button {
+   color: inherit;
+}
+.grade-periodo button:hover {
+   background: rgb(0 0 0 / 12%);
+   color: inherit;
+}
+.grade-periodo :focus-visible {
+   outline-color: white;
+}
+.caso-identidade :is(.text-ink, .text-ink-2, .text-ink-3, .text-ink-4) {
+   color: inherit;
+}
+.caso-identidade button,
+.caso-identidade .caso-protocolo {
+   background: rgb(0 0 0 / 12%);
+   color: white;
+}
+.caso-identidade button:hover {
+   background: rgb(0 0 0 / 20%);
+}
+.caso-identidade :focus-visible {
+   outline-color: white;
+}
+.caso-identidade :is(.mat-sim, .mat-nao) {
+   background: white;
+   border-radius: 999px;
+   padding: 3px 8px;
+}
+.caso-identidade .mat-sim {
+   color: oklch(42% 0.13 149);
+}
+.caso-identidade .mat-nao {
+   color: oklch(49% 0.2 27);
+}
+.caso-etapa {
+   background: var(--fila-cor);
+   color: white;
+   padding: 5px 10px;
+   border-radius: 999px;
+}
+.caso-etapa > span {
+   color: inherit;
+}
+.caso-etapa [aria-hidden] {
+   background: currentColor;
+}
+.caso-proximo-passo {
+   background: color-mix(in srgb, var(--fila-cor) 15%, var(--card));
+   border: 1px solid color-mix(in srgb, var(--fila-cor) 25%, var(--card));
+}
+.caso-proximo-passo h2 {
+   color: var(--fila-cor);
+}
+.dark .caso-proximo-passo h2 {
+   color: color-mix(in oklch, var(--fila-cor) 50%, white);
+}
+.acao-destaque {
+   background: var(--fila-cor);
+   color: white;
+}
+.acao-destaque:hover:not(:disabled):not([aria-disabled="true"]) {
+   background: color-mix(in srgb, var(--fila-cor) 90%, black);
+}
+.acao-destaque:is(:disabled, [aria-disabled="true"]) {
+   background: var(--surface-3);
+   color: var(--ink-3);
+   cursor: not-allowed;
+   opacity: 1;
+}
+.acao-destaque:is(:disabled, [aria-disabled="true"]) kbd {
+   color: inherit;
+   background: var(--surface-2);
+}
+.caso-abas {
+   gap: 8px;
+   padding: 3px 2px 7px;
+   border-bottom: 0;
+}
+.caso-abas [role="tab"] {
+   border-radius: 10px;
+   background: color-mix(in oklch, var(--ink-2) 8%, var(--card));
+   color: var(--ink-2);
+}
+.caso-abas [role="tab"]:hover {
+   background: color-mix(in oklch, var(--ink-2) 14%, var(--card));
+}
+.caso-abas [role="tab"][aria-selected="true"] {
+   background: var(--ink-2);
+   color: var(--background);
+}
+.caso-abas [role="tab"] > span > span {
+   color: inherit;
+   background: transparent;
+}
+.caso-abas [role="tab"][aria-selected="true"] > span > span {
+   background: rgb(0 0 0 / 12%);
+}
+.caso-abas [role="tab"][aria-selected="true"] > span:last-child {
+   background: var(--ink-2);
+}
+.caso-abas [role="tab"] > .absolute {
+   display: none;
+}
+.dark .caso-abas [role="tab"] {
+   background: color-mix(in oklch, var(--foreground) 8%, var(--card));
+}
+.dark .caso-abas [role="tab"]:hover {
+   background: color-mix(in oklch, var(--foreground) 14%, var(--card));
+}
+.dark .caso-abas [role="tab"][aria-selected="true"] {
+   background: var(--surface-3);
+   color: var(--foreground);
+}
+.observacao-bolha {
+   position: relative;
+   border-radius: 12px;
+   padding: 14px 16px;
+   background: var(--fila-todas);
+   color: white;
+}
+.observacao-bolha::before {
+   content: "";
+   position: absolute;
+   left: -7px;
+   top: 18px;
+   width: 14px;
+   height: 14px;
+   background: inherit;
+   clip-path: polygon(0 0, 100% 0, 100% 100%);
+}
+.historico-caso {
+   overflow: hidden;
+   border-radius: 12px;
+   background: var(--card);
+}
+.historico-cabecalho {
+   background: var(--fila-todas);
+   color: white;
+}
+.historico-abas {
+   gap: 4px;
+   border-bottom: 0;
+}
+.historico-abas [role="tab"] {
+   flex: 1;
+   padding: 8px;
+   border-radius: 8px;
+   font-size: 12px;
+   background: color-mix(in srgb, var(--fila-todas) 12%, var(--card));
+   color: var(--ink-2);
+}
+.historico-abas [role="tab"][aria-selected="true"] {
+   background: var(--fila-todas);
+   color: white;
+}
+.historico-abas [role="tab"] > .absolute {
+   display: none;
+}
+@media (min-width: 1280px) {
+   .caso-lateral {
+      max-height: calc(100svh - 156px);
+      overflow-y: auto;
+   }
+}
+.academic-header {
+   background: var(--card);
+   border-bottom: 1px solid var(--hairline);
+}
+.mat-sim {
+   color: var(--mat-sim);
+}
+.mat-nao {
+   color: var(--mat-nao);
+}
+.perfil-link {
+   background: var(--brand-soft);
+   color: var(--brand-text);
+}
+.perfil-link:hover {
+   background: var(--brand);
+   color: var(--on-brand);
+}
+.tabela-protocolos td {
+   padding: 14px 12px;
+   border-bottom: 1px solid var(--hairline);
+}
+.tabela-protocolos td:first-child {
+   padding-left: 20px;
+}
+.linha-protocolo:nth-child(even) {
+   background: color-mix(in oklch, var(--surface-2) 40%, var(--card));
+}
+.linha-protocolo:hover,
+.linha-protocolo:focus-within {
+   background: var(--surface-hover);
+}
+::selection {
+   background: var(--brand-soft);
+   color: var(--ink);
+}
+input,
+textarea {
+   caret-color: var(--brand-text);
+}
+@media (max-width: 767px) {
+   .fila-etapa {
+      min-height: 76px;
+      padding: 10px 12px;
+   }
+}

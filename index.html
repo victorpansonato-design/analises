@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="pt-BR">
+   <head>
+      <meta charset="UTF-8" />
+      <link rel="icon" type="image/png" href="/icone_header.png" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <meta name="color-scheme" content="light dark" />
+      <title>Análises | UNIANCHIETA</title>
+      <!--
+         Pré-pintura do tema (docs/14 ADR-005): aplica a classe antes do primeiro paint para não
+         piscar. O Zustand `persist` grava {"state":{"theme":"dark"},"version":0} na chave app-theme.
+      -->
+      <script>
+         (function () {
+            try {
+               var raw = localStorage.getItem("app-theme");
+               var t = "system";
+               if (raw) {
+                  var p = JSON.parse(raw);
+                  t = (p && p.state && p.state.theme) || "system";
+               }
+               var dark = t === "dark" || (t === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+               var r = document.documentElement;
+               r.classList.remove("light", "dark");
+               r.classList.add(dark ? "dark" : "light");
+               r.style.colorScheme = dark ? "dark" : "light";
+            } catch (e) {}
+         })();
+      </script>
+   </head>
+   <body>
+      <div id="root"></div>
+      <script type="module" src="/src/main.tsx"></script>
+   </body>
+</html>

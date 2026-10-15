@@ -1,0 +1,1671 @@
+openapi: 3.1.0
+info:
+  title: Análises · API do processo de análise curricular (UniAnchieta)
+  version: 0.3.0
+  description: |
+    Contrato entre o front (template React Anchieta) e o backend. O front é construído contra este
+    contrato com MSW; o time de TI implementa a API real seguindo-o.
+
+    Convenções:
+    - Toda resposta de sucesso usa o envelope do template: `{ success: true, data: <T>, message? }`.
+    - Erro usa `ApiErrorResponse` (`success: false`, `error.code`, `error.message`).
+    - Datas em ISO 8601 com fuso (`2026-10-09T15:00:00-03:00` ou `Z`).
+    - Mutations em um caso enviam `If-Match: <versao>`; versão divergente → `409 VERSAO_DESATUALIZADA`.
+    - Autenticação por cookie de sessão do SSO (`withCredentials`), como no template. `401` → SSO.
+    - Campos sensíveis já chegam mascarados conforme o papel (ver docs/04).
+    - Mutations da ANÁLISE (itens, lote, pergunta, resposta, período) enviam `If-Match: <analise.versao>`
+      (a versão da análise, devolvida em `Analise.versao` e na resposta de cada item); as demais mutations
+      de caso usam `If-Match: <caso.versao>`.
+    - `acoesDisponiveis` traz TODAS as ações do usuário naquele caso: transições, capacidades sem mudança de
+      etapa (nomes de `docs/04` / `permissoes.ts`, ex.: DECIDIR_ITEM, VER_FINANCEIRO) e `ASSUMIR`.
+    - Extensões feitas durante a implementação do front (v0.2.0): `GET /casos/{id}/analise/previa-matriz`,
+      `GET /pessoas/{id}/vestibular`, modo `REVERTER` no lote, `ItemAnalise.ementa`, `ItemChecklist.sensivel`,
+      `botoes` na prévia de mensagem, `Proposta.enviadaEm`, `Indicador.meta`/`detalhe` e `denominador` por linha
+      de composição.
+servers:
+  - url: /analises/api/v1
+    description: Mesmo host (proxy do Vite em dev, Apache/Nginx em produção)
+tags:
+  - name: Sessão
+  - name: Casos
+  - name: Análise
+  - name: Coordenação
+  - name: Documentos
+  - name: Comunicação
+  - name: Linha do tempo
+  - name: Proposta
+  - name: Catálogos
+  - name: Indicadores
+  - name: Eventos
+
+paths:
+  /me:
+    get:
+      tags: [Sessão]
+      summary: Usuário logado com papéis e escopo
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - properties:
+                      data: { $ref: "#/components/schemas/Me" }
+
+  /casos:
+    get:
+      tags: [Casos]
+      summary: Fila (lista paginada por cursor)
+      parameters:
+        - { name: visao, in: query, schema: { type: string, enum: [MINHA_VEZ, EQUIPE, TODOS], default: TODOS } }
+        - name: etapa
+          in: query
+          description: Fila operacional ou etapa individual. Novas agrega rascunho e pré-análise; liberadas agrega pronto, proposta e negociação; concluídas agrega matriculado, perdido e cancelado.
+          schema:
+            oneOf:
+              - { $ref: "#/components/schemas/Etapa" }
+              - { type: string, enum: [NOVAS, LIBERADAS, CONCLUIDAS, TODAS] }
+        - { name: tipo, in: query, schema: { $ref: "#/components/schemas/Tipo" } }
+        - { name: curso, in: query, schema: { type: string, description: "ID ou parte do nome do curso, sem distinção de acentos" } }
+        - name: turno
+          in: query
+          schema:
+            oneOf:
+              - { $ref: "#/components/schemas/Turno" }
+              - { type: string, enum: [DIURNO] }
+        - { name: modalidade, in: query, schema: { $ref: "#/components/schemas/Modalidade" } }
+        - { name: responsavel, in: query, schema: { type: string, description: "id do usuário ou SEM_RESPONSAVEL" } }
+        - { name: somenteAtrasados, in: query, schema: { type: boolean } }
+        - { name: comPendencia, in: query, schema: { type: boolean } }
+        - { name: ouvidoria, in: query, schema: { type: boolean } }
+        - { name: incluirEncerrados, in: query, schema: { type: boolean, default: false } }
+        - { name: ciclo, in: query, schema: { type: string, example: "2027.1" } }
+        - { name: q, in: query, schema: { type: string, description: "RA, CPF (dígitos), nome (sem acento) ou protocolo" } }
+        - { name: ordem, in: query, schema: { type: string, enum: [PRIORIDADE, MAIS_ANTIGOS, SLA, NOME], default: PRIORIDADE } }
+        - { name: cursor, in: query, schema: { type: string } }
+        - { name: limite, in: query, schema: { type: integer, default: 50, maximum: 200 } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - properties:
+                      data:
+                        type: object
+                        required: [itens, total, atrasados, proximoCursor]
+                        properties:
+                          itens: { type: array, items: { $ref: "#/components/schemas/CasoResumo" } }
+                          total: { type: integer }
+                          atrasados: { type: integer }
+                          proximoCursor: { type: [string, "null"] }
+    post:
+      tags: [Casos]
+      summary: Novo protocolo (cria o caso já enviado ou como rascunho)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/NovoProtocolo" }
+      responses:
+        "201":
+          description: Criado
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - properties:
+                      data: { $ref: "#/components/schemas/CasoDetalhe" }
+        "409": { $ref: "#/components/responses/Conflito" }
+        "422": { $ref: "#/components/responses/Validacao" }
+
+  /casos/funil:
+    get:
+      tags: [Casos]
+      summary: Contagem por etapa (faixa do funil)
+      parameters:
+        - { name: visao, in: query, schema: { type: string, enum: [MINHA_VEZ, EQUIPE, TODOS] } }
+        - { name: ciclo, in: query, schema: { type: string } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - properties:
+                      data: { $ref: "#/components/schemas/Funil" }
+
+  /casos/proximo:
+    post:
+      tags: [Casos]
+      summary: Pegar próximo (atribui a mim o caso sem responsável de maior prioridade na minha etapa)
+      responses:
+        "200":
+          description: Caso atribuído
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - properties:
+                      data: { $ref: "#/components/schemas/CasoDetalhe" }
+        "204": { description: Nada na fila sem responsável }
+
+  /casos/{casoId}:
+    parameters: [{ $ref: "#/components/parameters/CasoId" }]
+    get:
+      tags: [Casos]
+      summary: Detalhe do caso (inclui acoesDisponiveis para o usuário logado)
+      responses:
+        "200":
+          description: OK
+          headers:
+            ETag: { schema: { type: string }, description: "versão do caso" }
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - properties:
+                      data: { $ref: "#/components/schemas/CasoDetalhe" }
+        "404": { $ref: "#/components/responses/NaoEncontrado" }
+    patch:
+      tags: [Casos]
+      summary: Editar dados do candidato/caso (aba Dados)
+      parameters: [{ $ref: "#/components/parameters/IfMatch" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/EdicaoCaso" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - properties:
+                      data: { $ref: "#/components/schemas/CasoDetalhe" }
+        "409": { $ref: "#/components/responses/Conflito" }
+        "422": { $ref: "#/components/responses/Validacao" }
+
+  /casos/{casoId}/transicoes:
+    parameters: [{ $ref: "#/components/parameters/CasoId" }]
+    post:
+      tags: [Casos]
+      summary: Executar uma transição da máquina de estados
+      parameters: [{ $ref: "#/components/parameters/IfMatch" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [acao]
+              properties:
+                acao: { $ref: "#/components/schemas/AcaoTransicao" }
+                motivo: { type: string, description: "código do motivo padronizado (docs/03 §4)" }
+                texto: { type: string, maxLength: 1000 }
+                retomarEm: { type: string, format: date-time }
+                aceite:
+                  type: object
+                  properties:
+                    canal: { type: string, enum: [WHATSAPP, TELEFONE, PRESENCIAL, EMAIL] }
+                    em: { type: string, format: date-time }
+                novoDestino: { $ref: "#/components/schemas/Destino" }
+      responses:
+        "200":
+          description: Caso atualizado
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - properties:
+                      data: { $ref: "#/components/schemas/CasoDetalhe" }
+        "409": { $ref: "#/components/responses/Conflito" }
+        "422":
+          description: Transição recusada (guardas). `error.detalhes` traz as mensagens prontas para a UI.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ApiErrorResponse" }
+
+  /casos/{casoId}/atribuicao:
+    parameters: [{ $ref: "#/components/parameters/CasoId" }]
+    put:
+      tags: [Casos]
+      summary: Atribuir responsável (ou assumir)
+      parameters: [{ $ref: "#/components/parameters/IfMatch" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [usuarioId]
+              properties:
+                usuarioId: { type: string, description: "use 'EU' para assumir" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - properties:
+                      data: { $ref: "#/components/schemas/CasoDetalhe" }
+
+  /casos/{casoId}/flags:
+    parameters: [{ $ref: "#/components/parameters/CasoId" }]
+    patch:
+      tags: [Casos]
+      summary: Ouvidoria, escalonamento e pendência externa
+      parameters: [{ $ref: "#/components/parameters/IfMatch" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                ouvidoria: { type: boolean }
+                escalado: { type: boolean }
+                pendencia:
+                  oneOf:
+                    - { $ref: "#/components/schemas/PendenciaExterna" }
+                    - { type: "null" }
+                justificativa: { type: string }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - properties:
+                      data: { $ref: "#/components/schemas/CasoDetalhe" }
+
+  /casos/{casoId}/dados-sensiveis/{campo}:
+    parameters:
+      - { $ref: "#/components/parameters/CasoId" }
+      - { name: campo, in: path, required: true, schema: { type: string, enum: [CPF, CELULAR, EMAIL] } }
+    get:
+      tags: [Casos]
+      summary: Revelar dado mascarado (gera log de acesso)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - properties:
+                      data: { type: object, properties: { valor: { type: string } } }
+        "403": { $ref: "#/components/responses/Proibido" }
+
+  /casos/{casoId}/analise:
+    parameters: [{ $ref: "#/components/parameters/CasoId" }]
+    get:
+      tags: [Análise]
+      summary: Grade da análise (matriz de destino + origem + decisões + resumo)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - properties:
+                      data: { $ref: "#/components/schemas/Analise" }
+    patch:
+      tags: [Análise]
+      summary: Dados gerais da análise (período de ingresso confirmado)
+      parameters: [{ $ref: "#/components/parameters/IfMatch" }]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                periodoIngresso: { type: integer, minimum: 1 }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - properties:
+                      data: { $ref: "#/components/schemas/Analise" }
+
+  /casos/{casoId}/analise/itens/{itemId}:
+    parameters:
+      - { $ref: "#/components/parameters/CasoId" }
+      - { name: itemId, in: path, required: true, schema: { type: string } }
+    put:
+      tags: [Análise]
+      summary: Decidir um item (confirmar sugestão ou alterar)
+      parameters: [{ $ref: "#/components/parameters/IfMatch" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/DecisaoEntrada" }
+      responses:
+        "200":
+          description: Item atualizado + resumo recalculado
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - properties:
+                      data:
+                        type: object
+                        properties:
+                          item: { $ref: "#/components/schemas/ItemAnalise" }
+                          resumo: { $ref: "#/components/schemas/ResumoAnalise" }
+                          versao: { type: integer }
+        "409": { $ref: "#/components/responses/Conflito" }
+
+  /casos/{casoId}/analise/itens:lote:
+    parameters: [{ $ref: "#/components/parameters/CasoId" }]
+    post:
+      tags: [Análise]
+      summary: Decisão em lote (aceitar sugestões de alta confiança, período inteiro, seleção)
+      parameters: [{ $ref: "#/components/parameters/IfMatch" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [modo]
+              properties:
+                modo:
+                  type: string
+                  enum: [ACEITAR_SUGESTOES_ALTA, DEFINIR, REVERTER]
+                  description: "REVERTER volta os itens para SUGERIDO, sem decisão (Desfazer do aceite em lote, 10 s)"
+
+                itemIds: { type: array, items: { type: string } }
+                decisao: { $ref: "#/components/schemas/DecisaoItem" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - properties:
+                      data: { $ref: "#/components/schemas/Analise" }
+
+  /casos/{casoId}/analise/previa-matriz:
+    parameters: [{ $ref: "#/components/parameters/CasoId" }]
+    get:
+      tags: [Análise]
+      summary: Prévia de "Trocar matriz" (quantas decisões mapeiam sozinhas e quantas precisam de revisão)
+      parameters:
+        - { name: matriz, in: query, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - properties:
+                      data:
+                        type: object
+                        required: [mapeadas, revisar, semCorrespondencia]
+                        properties:
+                          mapeadas: { type: integer }
+                          revisar: { type: integer }
+                          semCorrespondencia: { type: integer }
+
+  /casos/{casoId}/analise/itens/{itemId}/pergunta:
+    parameters:
+      - { $ref: "#/components/parameters/CasoId" }
+      - { name: itemId, in: path, required: true, schema: { type: string } }
+    put:
+      tags: [Coordenação]
+      summary: Criar/editar pergunta à coordenação sobre o item
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [texto, decisaoSugerida]
+              properties:
+                texto: { type: string, minLength: 5, maxLength: 600 }
+                decisaoSugerida: { $ref: "#/components/schemas/DecisaoItem" }
+      responses:
+        "200": { $ref: "#/components/responses/ItemOk" }
+    delete:
+      tags: [Coordenação]
+      summary: Retirar pergunta (antes de enviar)
+      responses:
+        "200": { $ref: "#/components/responses/ItemOk" }
+
+  /casos/{casoId}/analise/itens/{itemId}/resposta:
+    parameters:
+      - { $ref: "#/components/parameters/CasoId" }
+      - { name: itemId, in: path, required: true, schema: { type: string } }
+    put:
+      tags: [Coordenação]
+      summary: Coordenação responde o item
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [decisao]
+              properties:
+                decisao: { $ref: "#/components/schemas/DecisaoItem" }
+                comentario: { type: string, maxLength: 600 }
+                usarComoRegra: { type: boolean, default: true }
+      responses:
+        "200": { $ref: "#/components/responses/ItemOk" }
+
+  /casos/{casoId}/analise/atividades-complementares:
+    parameters: [{ $ref: "#/components/parameters/CasoId" }]
+    post:
+      tags: [Análise]
+      summary: Inserir atividade complementar (≤ limite por atividade)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [atividadeId, ch]
+              properties:
+                atividadeId: { type: string }
+                ch: { type: number, exclusiveMinimum: 0 }
+                ano: { type: integer }
+                periodo: { type: integer }
+                inicio: { type: string, format: date }
+                fim: { type: string, format: date }
+      responses:
+        "201":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - properties:
+                      data: { $ref: "#/components/schemas/Analise" }
+        "422": { $ref: "#/components/responses/Validacao" }
+
+  /casos/{casoId}/analise/atividades-complementares/{id}:
+    parameters:
+      - { $ref: "#/components/parameters/CasoId" }
+      - { name: id, in: path, required: true, schema: { type: string } }
+    delete:
+      tags: [Análise]
+      summary: Remover atividade complementar
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - properties:
+                      data: { $ref: "#/components/schemas/Analise" }
+
+  /casos/{casoId}/analise/pratica-extensionista:
+    parameters: [{ $ref: "#/components/parameters/CasoId" }]
+    post:
+      tags: [Análise]
+      summary: Inserir horas de prática extensionista
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [ch]
+              properties:
+                ch: { type: number, exclusiveMinimum: 0 }
+                descricao: { type: string }
+      responses:
+        "201":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - properties:
+                      data: { $ref: "#/components/schemas/Analise" }
+
+  /casos/{casoId}/pre-analise:
+    parameters: [{ $ref: "#/components/parameters/CasoId" }]
+    get:
+      tags: [Análise]
+      summary: Estado e resultado da pré-análise (IA + base de equivalências)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - properties:
+                      data: { $ref: "#/components/schemas/PreAnalise" }
+    post:
+      tags: [Análise]
+      summary: Reexecutar pré-análise (não sobrescreve decisões confirmadas)
+      responses:
+        "202":
+          description: Aceito; acompanhar via GET ou evento pre_analise.concluida
+
+  /casos/{casoId}/documentos:
+    parameters: [{ $ref: "#/components/parameters/CasoId" }]
+    get:
+      tags: [Documentos]
+      summary: Checklist e arquivos do caso
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - properties:
+                      data: { type: array, items: { $ref: "#/components/schemas/ItemChecklist" } }
+    post:
+      tags: [Documentos]
+      summary: Enviar arquivo (consultor/analista anexando o que o candidato mandou)
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [arquivo, checklistId]
+              properties:
+                arquivo: { type: string, format: binary }
+                checklistId: { type: string }
+      responses:
+        "201":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - properties:
+                      data: { $ref: "#/components/schemas/ItemChecklist" }
+
+  /casos/{casoId}/documentos/{checklistId}:
+    parameters:
+      - { $ref: "#/components/parameters/CasoId" }
+      - { name: checklistId, in: path, required: true, schema: { type: string } }
+    patch:
+      tags: [Documentos]
+      summary: Aceitar, recusar (com motivo, dispara mensagem) ou dispensar item do checklist
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status: { type: string, enum: [ACEITO, RECUSADO, DISPENSADO] }
+                motivoRecusa: { type: string, enum: [ILEGIVEL, INCOMPLETO, DOCUMENTO_ERRADO, SEM_ASSINATURA_OU_CARIMBO, VENCIDO, OUTRO] }
+                texto: { type: string }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - properties:
+                      data: { $ref: "#/components/schemas/ItemChecklist" }
+
+  /casos/{casoId}/documentos/{checklistId}/arquivo/{arquivoId}:
+    parameters:
+      - { $ref: "#/components/parameters/CasoId" }
+      - { name: checklistId, in: path, required: true, schema: { type: string } }
+      - { name: arquivoId, in: path, required: true, schema: { type: string } }
+    get:
+      tags: [Documentos]
+      summary: URL temporária para visualizar (gera log documento.visualizado)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - properties:
+                      data:
+                        type: object
+                        properties:
+                          url: { type: string }
+                          expiraEm: { type: string, format: date-time }
+                          mime: { type: string }
+
+  /casos/{casoId}/documentos:solicitar:
+    parameters: [{ $ref: "#/components/parameters/CasoId" }]
+    post:
+      tags: [Documentos]
+      summary: Lembrar agora / solicitar documentos pendentes (envia template)
+      responses:
+        "202": { description: Mensagem enfileirada }
+
+  /casos/{casoId}/historico-interno:migrar:
+    parameters: [{ $ref: "#/components/parameters/CasoId" }]
+    post:
+      tags: [Documentos]
+      summary: Migrar histórico interno (interna/retorno)
+      responses:
+        "202": { description: Migração iniciada; dispara pré-análise ao concluir }
+
+  /casos/{casoId}/timeline:
+    parameters: [{ $ref: "#/components/parameters/CasoId" }]
+    get:
+      tags: [Linha do tempo]
+      summary: Linha do tempo única
+      parameters:
+        - { name: filtro, in: query, schema: { type: string, enum: [TUDO, NOTAS, MENSAGENS, SISTEMA, DECISOES], default: TUDO } }
+        - { name: cursor, in: query, schema: { type: string } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - properties:
+                      data:
+                        type: object
+                        properties:
+                          itens: { type: array, items: { $ref: "#/components/schemas/EventoTimeline" } }
+                          proximoCursor: { type: [string, "null"] }
+
+  /casos/{casoId}/notas:
+    parameters: [{ $ref: "#/components/parameters/CasoId" }]
+    post:
+      tags: [Linha do tempo]
+      summary: Nota interna com @menções
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [texto]
+              properties:
+                texto: { type: string, minLength: 1, maxLength: 2000 }
+                mencoes: { type: array, items: { type: string } }
+      responses:
+        "201":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - properties:
+                      data: { $ref: "#/components/schemas/EventoTimeline" }
+
+  /comunicacao/templates:
+    get:
+      tags: [Comunicação]
+      summary: Templates aprovados disponíveis para o papel
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - properties:
+                      data: { type: array, items: { $ref: "#/components/schemas/TemplateMensagem" } }
+
+  /casos/{casoId}/mensagens:
+    parameters: [{ $ref: "#/components/parameters/CasoId" }]
+    post:
+      tags: [Comunicação]
+      summary: Enviar template ao candidato (o backend fala com o Blip)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [templateId]
+              properties:
+                templateId: { type: string }
+                variaveis: { type: object, additionalProperties: { type: string } }
+      responses:
+        "202":
+          description: Enfileirada
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - properties:
+                      data: { $ref: "#/components/schemas/EventoTimeline" }
+        "422": { $ref: "#/components/responses/Validacao" }
+
+  /casos/{casoId}/mensagens/previa:
+    parameters: [{ $ref: "#/components/parameters/CasoId" }]
+    post:
+      tags: [Comunicação]
+      summary: Prévia exata do texto que o candidato receberá
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [templateId]
+              properties:
+                templateId: { type: string }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - properties:
+                      data:
+                        type: object
+                        properties:
+                          texto: { type: string }
+                          variaveisFaltando: { type: array, items: { type: string } }
+                          botoes: { type: array, items: { type: string }, description: "respostas rápidas do template" }
+
+  /casos/{casoId}/proposta:
+    parameters: [{ $ref: "#/components/parameters/CasoId" }]
+    get:
+      tags: [Proposta]
+      summary: Resumo congelado + condição financeira + previsão
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - properties:
+                      data: { $ref: "#/components/schemas/Proposta" }
+
+  /pessoas/lookup:
+    get:
+      tags: [Catálogos]
+      summary: Pré-preenchimento do protocolo por CPF (vínculo, ex-aluno, casos ativos)
+      parameters:
+        - { name: cpf, in: query, required: true, schema: { type: string, pattern: "^[0-9]{11}$" } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - properties:
+                      data: { $ref: "#/components/schemas/LookupPessoa" }
+
+  /pessoas/{pessoaId}/vestibular:
+    parameters: [{ name: pessoaId, in: path, required: true, schema: { type: string } }]
+    get:
+      tags: [Catálogos]
+      summary: Dados do vestibular da pessoa (aba Dados, antigo "Dados vest."); null quando não há registro
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - properties:
+                      data: { type: [object, "null"], additionalProperties: { type: [string, number] } }
+
+  /cursos:
+    get:
+      tags: [Catálogos]
+      summary: Cursos com turnos, modalidades e coordenação
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - properties:
+                      data: { type: array, items: { $ref: "#/components/schemas/Curso" } }
+
+  /matrizes:
+    get:
+      tags: [Catálogos]
+      summary: Matrizes de um curso
+      parameters:
+        - { name: curso, in: query, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - properties:
+                      data: { type: array, items: { $ref: "#/components/schemas/MatrizResumo" } }
+
+  /instituicoes:
+    get:
+      tags: [Catálogos]
+      summary: Autocomplete de IES de origem
+      parameters:
+        - { name: q, in: query, required: true, schema: { type: string, minLength: 2 } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - properties:
+                      data:
+                        type: array
+                        items: { type: object, properties: { id: { type: string }, nome: { type: string }, sigla: { type: [string, "null"] } } }
+
+  /usuarios:
+    get:
+      tags: [Catálogos]
+      summary: Usuários por papel (atribuir, @menção)
+      parameters:
+        - { name: papel, in: query, schema: { $ref: "#/components/schemas/Papel" } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - properties:
+                      data: { type: array, items: { $ref: "#/components/schemas/UsuarioResumo" } }
+
+  /parametros:
+    get:
+      tags: [Catálogos]
+      summary: Parâmetros de negócio vigentes (docs/15)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - properties:
+                      data: { type: object, additionalProperties: true }
+
+  /indicadores:
+    get:
+      tags: [Indicadores]
+      summary: Indicadores (mesma fonte do funil)
+      parameters:
+        - { name: ciclo, in: query, schema: { type: string } }
+        - { name: de, in: query, schema: { type: string, format: date } }
+        - { name: ate, in: query, schema: { type: string, format: date } }
+        - { name: tipo, in: query, schema: { $ref: "#/components/schemas/Tipo" } }
+        - { name: curso, in: query, schema: { type: string } }
+        - { name: modalidade, in: query, schema: { $ref: "#/components/schemas/Modalidade" } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - properties:
+                      data: { $ref: "#/components/schemas/Indicadores" }
+
+  /notificacoes:
+    get:
+      tags: [Eventos]
+      summary: Notificações do usuário
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Envelope"
+                  - properties:
+                      data: { type: array, items: { $ref: "#/components/schemas/Notificacao" } }
+  /notificacoes/{id}:lida:
+    parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+    post:
+      tags: [Eventos]
+      summary: Marcar como lida
+      responses:
+        "204": { description: OK }
+
+  /eventos/stream:
+    get:
+      tags: [Eventos]
+      summary: (Opcional) Server-Sent Events com eventos de domínio relevantes ao usuário
+      description: Enquanto não existir, o front usa polling de 30 s. Cada mensagem é um EventoDominio em JSON.
+      responses:
+        "200":
+          description: Stream SSE
+          content:
+            text/event-stream:
+              schema: { type: string }
+
+  /telemetria:
+    post:
+      tags: [Eventos]
+      summary: Eventos de UI sem dado pessoal (docs/10 §6)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: object
+                properties:
+                  nome: { type: string }
+                  em: { type: string, format: date-time }
+                  dados: { type: object, additionalProperties: true }
+      responses:
+        "204": { description: OK }
+
+components:
+  parameters:
+    CasoId:
+      name: casoId
+      in: path
+      required: true
+      schema: { type: string }
+    IfMatch:
+      name: If-Match
+      in: header
+      required: true
+      schema: { type: string }
+      description: versão atual do caso (`versao`)
+
+  responses:
+    Conflito:
+      description: Versão desatualizada ou duplicidade
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ApiErrorResponse" }
+    Validacao:
+      description: Dados inválidos
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ApiErrorResponse" }
+    NaoEncontrado:
+      description: Não encontrado
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ApiErrorResponse" }
+    Proibido:
+      description: Sem permissão
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ApiErrorResponse" }
+    ItemOk:
+      description: Item atualizado
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: "#/components/schemas/Envelope"
+              - properties:
+                  data: { $ref: "#/components/schemas/ItemAnalise" }
+
+  schemas:
+    Envelope:
+      type: object
+      required: [success, data]
+      properties:
+        success: { type: boolean, const: true }
+        data: {}
+        message: { type: string }
+
+    ApiErrorResponse:
+      type: object
+      required: [success, error]
+      properties:
+        success: { type: boolean, const: false }
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code: { type: string, examples: [VERSAO_DESATUALIZADA, TRANSICAO_RECUSADA, DUPLICADO, VALIDACAO, PROIBIDO] }
+            message: { type: string }
+            detalhes: { type: array, items: { type: string }, description: "mensagens prontas para a UI" }
+            atualizadoPor: { $ref: "#/components/schemas/UsuarioResumo" }
+        debug:
+          type: object
+          properties:
+            file: { type: string }
+            line: { type: integer }
+            trace: { type: array, items: { type: string } }
+
+    Papel:
+      type: string
+      enum: [CONSULTOR, ANALISTA, COORDENADOR, MATRICULA, SUPORTE, DIRETORIA, ADMIN]
+    Etapa:
+      type: string
+      enum:
+        [RASCUNHO, AGUARDANDO_DOCUMENTOS, PRE_ANALISE, EM_ANALISE, AGUARDANDO_COORDENACAO, AJUSTE_POS_COORDENACAO,
+         PRONTO_PARA_MATRICULA, PROPOSTA_ENVIADA, EM_NEGOCIACAO, ADIADO, MATRICULADO, PERDIDO, CANCELADO]
+    Tipo:
+      type: string
+      enum: [TRANSFERENCIA_EXTERNA, PORTADOR_DIPLOMA, TRANSFERENCIA_INTERNA, RETORNO]
+    SubtipoRetorno:
+      type: string
+      enum: [SEM_VINCULO, COM_VINCULO_ALTERACAO_CURRICULAR]
+    Turno:
+      type: string
+      enum: [MATUTINO, VESPERTINO, NOTURNO, INTEGRAL]
+    Modalidade:
+      type: string
+      enum: [PRESENCIAL, SEMIPRESENCIAL, EAD]
+    AcaoTransicao:
+      type: string
+      enum:
+        [ENVIAR_PROTOCOLO, DOCUMENTOS_COMPLETOS, CONCLUIR_PRE_ANALISE, FALHAR_PRE_ANALISE, ENVIAR_COORDENACAO,
+         RESPONDER_COORDENACAO, CONCLUIR_ANALISE, ENVIAR_PROPOSTA, REGISTRAR_RESPOSTA, EFETIVAR_MATRICULA,
+         MARCAR_SEM_RETORNO, ENCERRAR_PERDIDO, CANCELAR, ADIAR, RETOMAR, SOLICITAR_REANALISE, REABRIR, ALTERAR_DESTINO]
+    DecisaoItem:
+      type: string
+      enum: [DISPENSA, REGULAR, DP, ADAP]
+    Confianca:
+      type: string
+      enum: [ALTA, MEDIA, BAIXA, REGRA]
+
+    Me:
+      type: object
+      required: [usuario, nome, email, papeis, cursosCoordenados]
+      properties:
+        id: { type: string }
+        usuario: { type: string }
+        nome: { type: string }
+        email: { type: string }
+        setor: { type: [string, "null"] }
+        papeis: { type: array, items: { $ref: "#/components/schemas/Papel" } }
+        cursosCoordenados: { type: array, items: { type: string } }
+
+    UsuarioResumo:
+      type: object
+      required: [id, nome]
+      properties:
+        id: { type: string }
+        nome: { type: string }
+        papeis: { type: array, items: { $ref: "#/components/schemas/Papel" } }
+
+    Sla:
+      type: object
+      required: [venceEm, alertaEm, pausadoAte]
+      properties:
+        venceEm: { type: [string, "null"], format: date-time }
+        alertaEm: { type: [string, "null"], format: date-time }
+        pausadoAte: { type: [string, "null"], format: date-time }
+
+    PendenciaExterna:
+      type: object
+      required: [tipo, revisarEm]
+      properties:
+        tipo: { type: string, enum: [EDITAL_DP, VAGA, DOCUMENTO_IES_ORIGEM, DECISAO_ACADEMICA] }
+        descricao: { type: string }
+        revisarEm: { type: string, format: date-time }
+
+    Destino:
+      type: object
+      required: [cursoId, cursoNome, turno, modalidade, matrizId, ciclo]
+      properties:
+        cursoId: { type: string }
+        cursoNome: { type: string }
+        turno: { $ref: "#/components/schemas/Turno" }
+        modalidade: { $ref: "#/components/schemas/Modalidade" }
+        matrizId: { type: [string, "null"] }
+        ciclo: { type: string, examples: ["2027.1"] }
+
+    CasoResumo:
+      type: object
+      required: [id, protocolo, tipo, subtipo, etapa, etapaDesde, criadoEm, matriculado, liberadoMatriculaEm, candidato, destino, responsavel, sla, pendencia, flags, reanalises, versao]
+      properties:
+        id: { type: string }
+        protocolo: { type: string, examples: ["85560"] }
+        tipo: { $ref: "#/components/schemas/Tipo" }
+        subtipo:
+          oneOf:
+            - { $ref: "#/components/schemas/SubtipoRetorno" }
+            - { type: "null" }
+        etapa: { $ref: "#/components/schemas/Etapa" }
+        etapaDesde: { type: string, format: date-time }
+        criadoEm: { type: string, format: date-time }
+        matriculado:
+          type: boolean
+          description: Vínculo de matrícula do aluno, independente da etapa deste protocolo.
+        liberadoMatriculaEm:
+          type: [string, "null"]
+          format: date-time
+          description: Última entrada deste protocolo em pronto para matrícula.
+        candidato:
+          type: object
+          required: [nome, ra]
+          properties:
+            nome: { type: string }
+            ra: { type: [string, "null"] }
+        destino: { $ref: "#/components/schemas/Destino" }
+        responsavel:
+          oneOf:
+            - { $ref: "#/components/schemas/UsuarioResumo" }
+            - { type: "null" }
+        sla: { $ref: "#/components/schemas/Sla" }
+        pendencia:
+          oneOf:
+            - { $ref: "#/components/schemas/PendenciaExterna" }
+            - { type: "null" }
+        flags:
+          type: object
+          required: [ouvidoria, escalado, preAnaliseFalhou]
+          properties:
+            ouvidoria: { type: boolean }
+            escalado: { type: boolean }
+            preAnaliseFalhou: { type: boolean }
+        reanalises: { type: integer, minimum: 0 }
+        versao: { type: integer }
+
+    AcaoDisponivel:
+      type: object
+      required: [acao, habilitada, motivos, exigeMotivo]
+      properties:
+        acao: { type: string }
+        habilitada: { type: boolean }
+        motivos: { type: array, items: { type: string } }
+        exigeMotivo: { type: boolean }
+
+    CasoDetalhe:
+      allOf:
+        - $ref: "#/components/schemas/CasoResumo"
+        - type: object
+          required: [etapaAnterior, origem, ingresso, responsaveis, contadores, resumoCongeladoEm, noGed, jornada, acoesDisponiveis, criadoEm, atualizadoEm]
+          properties:
+            etapaAnterior:
+              oneOf:
+                - { $ref: "#/components/schemas/Etapa" }
+                - { type: "null" }
+            candidato:
+              type: object
+              required: [pessoaId, nome, ra, outroRa, cpfMascarado, celular, email, optInWhatsapp]
+              properties:
+                pessoaId: { type: string }
+                nome: { type: string }
+                ra: { type: [string, "null"] }
+                outroRa: { type: [string, "null"] }
+                cpfMascarado: { type: string, examples: ["***.123.456-**"] }
+                celular: { type: [string, "null"] }
+                email: { type: [string, "null"] }
+                optInWhatsapp: { type: boolean }
+            origem:
+              type: object
+              properties:
+                iesNome: { type: [string, "null"] }
+                cursoNome: { type: [string, "null"] }
+                estudouForaNoPeriodo: { type: [boolean, "null"] }
+            ingresso:
+              type: object
+              properties:
+                ano: { type: [integer, "null"] }
+                semestre: { type: [integer, "null"] }
+                periodo: { type: [integer, "null"] }
+            responsaveis:
+              type: object
+              properties:
+                consultor: { oneOf: [{ $ref: "#/components/schemas/UsuarioResumo" }, { type: "null" }] }
+                analista: { oneOf: [{ $ref: "#/components/schemas/UsuarioResumo" }, { type: "null" }] }
+                coordenador: { oneOf: [{ $ref: "#/components/schemas/UsuarioResumo" }, { type: "null" }] }
+                matricula: { oneOf: [{ $ref: "#/components/schemas/UsuarioResumo" }, { type: "null" }] }
+            contadores:
+              type: object
+              properties:
+                documentosObrigatorios: { type: integer }
+                documentosAceitos: { type: integer }
+                itensMatriz: { type: integer }
+                itensSemDecisao: { type: integer }
+                perguntasAbertas: { type: integer }
+            resumoCongeladoEm: { type: [string, "null"], format: date-time }
+            noGed: { type: boolean }
+            jornada:
+              type: array
+              items:
+                type: object
+                required: [etapa, entrouEm, saiuEm, por]
+                properties:
+                  etapa: { $ref: "#/components/schemas/Etapa" }
+                  entrouEm: { type: string, format: date-time }
+                  saiuEm: { type: [string, "null"], format: date-time }
+                  por: { oneOf: [{ $ref: "#/components/schemas/UsuarioResumo" }, { type: "null" }] }
+            acoesDisponiveis: { type: array, items: { $ref: "#/components/schemas/AcaoDisponivel" } }
+            criadoEm: { type: string, format: date-time }
+            atualizadoEm: { type: string, format: date-time }
+
+    NovoProtocolo:
+      type: object
+      required: [cpf, nome, celular, tipo, destino, enviar]
+      properties:
+        cpf: { type: string, pattern: "^[0-9]{11}$" }
+        nome: { type: string }
+        celular: { type: string }
+        email: { type: [string, "null"] }
+        optInWhatsapp: { type: boolean, default: true }
+        tipo: { $ref: "#/components/schemas/Tipo" }
+        subtipo: { oneOf: [{ $ref: "#/components/schemas/SubtipoRetorno" }, { type: "null" }] }
+        estudouForaNoPeriodo: { type: [boolean, "null"] }
+        destino: { $ref: "#/components/schemas/Destino" }
+        origem:
+          type: object
+          properties:
+            iesId: { type: [string, "null"] }
+            iesNome: { type: [string, "null"] }
+            cursoNome: { type: [string, "null"] }
+        enviar: { type: boolean, description: "false = salvar como RASCUNHO" }
+
+    EdicaoCaso:
+      type: object
+      description: Campos editáveis da aba Dados (só os enviados são alterados)
+      properties:
+        nome: { type: string }
+        celular: { type: string }
+        email: { type: string }
+        optInWhatsapp: { type: boolean }
+        outroRa: { type: string }
+        origem:
+          type: object
+          properties:
+            iesId: { type: string }
+            iesNome: { type: string }
+            cursoNome: { type: string }
+        ingresso:
+          type: object
+          properties:
+            ano: { type: integer }
+            semestre: { type: integer }
+
+    ItemOrigem:
+      type: object
+      required: [id, nome, ch]
+      properties:
+        id: { type: string }
+        nome: { type: string }
+        ies: { type: [string, "null"] }
+        ch: { type: number }
+        nota: { type: [number, "null"] }
+        ano: { type: [integer, "null"] }
+        semestre: { type: [integer, "null"] }
+        situacao: { type: string, enum: [APROVADO, REPROVADO, CURSANDO, DISPENSADO, OUTRO] }
+        confiancaExtracao: { type: [number, "null"], minimum: 0, maximum: 1 }
+        usadaEm: { type: array, items: { type: string }, description: "ids dos itens da matriz que usam esta origem" }
+
+    ItemAnalise:
+      type: object
+      required: [id, periodo, disciplina, ch, estado, sugestao, decisao]
+      properties:
+        id: { type: string }
+        periodo: { type: [integer, "null"], description: "null = sem período (estágio, extensão)" }
+        disciplina: { type: string }
+        codigo: { type: string, description: "Código da disciplina na matriz de destino" }
+        ch: { type: number }
+        ementa: { type: [string, "null"], description: "ementa resumida para a comparação lado a lado" }
+        estado: { type: string, enum: [SUGERIDO, DECIDIDO, PERGUNTA_ABERTA, RESPONDIDO] }
+        sugestao:
+          oneOf:
+            - type: object
+              required: [decisao, origemIds, confianca, fonte]
+              properties:
+                decisao: { $ref: "#/components/schemas/DecisaoItem" }
+                origemIds: { type: array, items: { type: string } }
+                confianca: { $ref: "#/components/schemas/Confianca" }
+                fonte: { type: string, enum: [IA, REGRA] }
+                justificativa: { type: string }
+                alertas: { type: array, items: { type: string } }
+            - { type: "null" }
+        decisao:
+          oneOf:
+            - type: object
+              required: [valor, origemIds, origem, por, em]
+              properties:
+                valor: { $ref: "#/components/schemas/DecisaoItem" }
+                origemIds: { type: array, items: { type: string } }
+                origem: { type: string, enum: [IA, REGRA, ANALISTA, COORDENACAO] }
+                motivoAlteracao: { type: [string, "null"], enum: [CH_INSUFICIENTE, CONTEUDO_DIVERGENTE, NOTA_REPROVACAO, PRAZO_VALIDADE, OUTRO, null] }
+                por: { $ref: "#/components/schemas/UsuarioResumo" }
+                em: { type: string, format: date-time }
+            - { type: "null" }
+        pergunta:
+          oneOf:
+            - type: object
+              properties:
+                texto: { type: string }
+                decisaoSugerida: { $ref: "#/components/schemas/DecisaoItem" }
+                por: { $ref: "#/components/schemas/UsuarioResumo" }
+                em: { type: string, format: date-time }
+                resposta:
+                  oneOf:
+                    - type: object
+                      properties:
+                        decisao: { $ref: "#/components/schemas/DecisaoItem" }
+                        comentario: { type: [string, "null"] }
+                        usarComoRegra: { type: boolean }
+                        por: { $ref: "#/components/schemas/UsuarioResumo" }
+                        em: { type: string, format: date-time }
+                    - { type: "null" }
+            - { type: "null" }
+
+    DecisaoEntrada:
+      type: object
+      required: [valor]
+      properties:
+        valor: { $ref: "#/components/schemas/DecisaoItem" }
+        origemIds: { type: array, items: { type: string } }
+        motivoAlteracao: { type: string, enum: [CH_INSUFICIENTE, CONTEUDO_DIVERGENTE, NOTA_REPROVACAO, PRAZO_VALIDADE, OUTRO] }
+
+    ResumoAnalise:
+      type: object
+      properties:
+        chTotalMatriz: { type: number }
+        chDispensada: { type: number }
+        contagem:
+          type: object
+          properties:
+            dispensa: { type: integer }
+            regular: { type: integer }
+            dp: { type: integer }
+            adap: { type: integer }
+            pendentes: { type: integer }
+            perguntas: { type: integer }
+        periodoIngressoSugerido: { type: [integer, "null"] }
+        periodoIngresso: { type: [integer, "null"] }
+        previsaoSemestres: { type: [integer, "null"], description: "estimativa" }
+        atividadesComplementares: { type: object, properties: { horas: { type: number }, exigidas: { type: number } } }
+        praticaExtensionista: { type: object, properties: { horas: { type: number }, exigidas: { type: number } } }
+        bloqueios: { type: array, items: { type: object, properties: { mensagem: { type: string }, itemId: { type: [string, "null"] } } } }
+
+    Analise:
+      type: object
+      required: [matriz, itens, origem, resumo, versao]
+      properties:
+        matriz: { $ref: "#/components/schemas/MatrizResumo" }
+        itens: { type: array, items: { $ref: "#/components/schemas/ItemAnalise" } }
+        origem: { type: array, items: { $ref: "#/components/schemas/ItemOrigem" } }
+        atividadesComplementares:
+          type: array
+          items:
+            type: object
+            properties:
+              id: { type: string }
+              atividade: { type: string }
+              ch: { type: number }
+              ano: { type: [integer, "null"] }
+              periodo: { type: [integer, "null"] }
+              inicio: { type: [string, "null"], format: date }
+              fim: { type: [string, "null"], format: date }
+        praticaExtensionista:
+          type: array
+          items: { type: object, properties: { id: { type: string }, descricao: { type: [string, "null"] }, ch: { type: number } } }
+        disciplinasPersonalizadasPos:
+          type: array
+          items: { type: object, properties: { id: { type: string }, nome: { type: string } } }
+        resumo: { $ref: "#/components/schemas/ResumoAnalise" }
+        versao: { type: integer }
+
+    PreAnalise:
+      type: object
+      required: [status]
+      properties:
+        status: { type: string, enum: [PENDENTE, PROCESSANDO, CONCLUIDA, FALHOU] }
+        iniciadaEm: { type: [string, "null"], format: date-time }
+        concluidaEm: { type: [string, "null"], format: date-time }
+        modelo: { type: [string, "null"] }
+        cobertura: { type: object, properties: { sugeridos: { type: integer }, total: { type: integer } } }
+        avisos: { type: array, items: { type: string } }
+        erro: { type: [string, "null"] }
+
+    ItemChecklist:
+      type: object
+      required: [id, nome, obrigatorio, status, arquivos]
+      properties:
+        id: { type: string }
+        nome: { type: string, examples: ["Histórico escolar da IES de origem"] }
+        obrigatorio: { type: boolean }
+        status: { type: string, enum: [PENDENTE, RECEBIDO, ACEITO, RECUSADO, DISPENSADO] }
+        motivoRecusa: { type: [string, "null"] }
+        legibilidade: { type: [string, "null"], enum: [BOA, DUVIDOSA, RUIM, null], description: "checagem automática" }
+        arquivos:
+          type: array
+          items:
+            type: object
+            properties:
+              id: { type: string }
+              nome: { type: string }
+              mime: { type: string }
+              tamanho: { type: integer }
+              canal: { type: string, enum: [WHATSAPP, LINK, INTERNO, CONSULTOR] }
+              recebidoEm: { type: string, format: date-time }
+        proximoLembreteEm: { type: [string, "null"], format: date-time }
+        sensivel: { type: boolean, description: "documento de identidade: sem VER_DOCUMENTO_IDENTIDADE, só o nome do arquivo" }
+
+    EventoTimeline:
+      type: object
+      required: [id, tipo, em, autor, categoria]
+      properties:
+        id: { type: string }
+        tipo: { type: string, examples: [nota.adicionada, mensagem.enviada, analise.concluida] }
+        categoria: { type: string, enum: [NOTA, MENSAGEM, SISTEMA, DECISAO] }
+        em: { type: string, format: date-time }
+        autor:
+          type: object
+          required: [tipo]
+          properties:
+            tipo: { type: string, enum: [PESSOA, SISTEMA, CANDIDATO, IA] }
+            id: { type: [string, "null"] }
+            nome: { type: [string, "null"] }
+        titulo: { type: string }
+        detalhe: { type: [string, "null"] }
+        visivelAoCandidato: { type: boolean }
+        statusEntrega: { type: [string, "null"], enum: [ENFILEIRADA, ENVIADA, ENTREGUE, LIDA, FALHOU, null] }
+        dados: { type: object, additionalProperties: true }
+
+    TemplateMensagem:
+      type: object
+      required: [id, nome, descricao, variaveis]
+      properties:
+        id: { type: string, examples: [lembrete_documentos] }
+        nome: { type: string }
+        descricao: { type: string }
+        variaveis: { type: array, items: { type: string } }
+        etapas: { type: array, items: { $ref: "#/components/schemas/Etapa" } }
+
+    Proposta:
+      type: object
+      properties:
+        resumo: { $ref: "#/components/schemas/ResumoAnalise" }
+        congeladoEm: { type: [string, "null"], format: date-time }
+        financeiro:
+          oneOf:
+            - type: object
+              properties:
+                mensalidade: { type: number }
+                descontoPercentual: { type: [number, "null"] }
+                bolsa: { type: [string, "null"] }
+                parcelas: { type: [integer, "null"] }
+                validadeAte: { type: [string, "null"], format: date }
+                observacao: { type: [string, "null"] }
+            - { type: "null" }
+        pendenciaFinanceiraAnterior: { type: [boolean, "null"] }
+        resposta:
+          oneOf:
+            - type: object
+              properties:
+                tipo: { type: string, enum: [INTERESSE, SEM_INTERESSE, DUVIDA] }
+                em: { type: string, format: date-time }
+                canal: { type: string }
+            - { type: "null" }
+        aceite:
+          oneOf:
+            - type: object
+              properties:
+                canal: { type: string }
+                em: { type: string, format: date-time }
+                por: { $ref: "#/components/schemas/UsuarioResumo" }
+            - { type: "null" }
+        pdfUrl: { type: [string, "null"] }
+        enviadaEm: { type: [string, "null"], format: date-time }
+
+    LookupPessoa:
+      type: object
+      properties:
+        encontrada: { type: boolean }
+        pessoa:
+          oneOf:
+            - type: object
+              properties:
+                pessoaId: { type: string }
+                nome: { type: string }
+                celular: { type: [string, "null"] }
+                email: { type: [string, "null"] }
+                ra: { type: [string, "null"] }
+            - { type: "null" }
+        vinculo: { type: string, enum: [NENHUM, ALUNO_ATIVO, EX_ALUNO, FORMADO] }
+        tipoSugerido: { oneOf: [{ $ref: "#/components/schemas/Tipo" }, { type: "null" }] }
+        casosAtivos: { type: array, items: { $ref: "#/components/schemas/CasoResumo" } }
+        dadosVestibular: { type: [object, "null"], additionalProperties: true }
+
+    Curso:
+      type: object
+      properties:
+        id: { type: string }
+        nome: { type: string }
+        turnos: { type: array, items: { $ref: "#/components/schemas/Turno" } }
+        modalidades: { type: array, items: { $ref: "#/components/schemas/Modalidade" } }
+        coordenador: { $ref: "#/components/schemas/UsuarioResumo" }
+        vagasDisponiveis: { type: [integer, "null"], description: "[VALIDAR origem do dado]" }
+
+    MatrizResumo:
+      type: object
+      properties:
+        id: { type: string }
+        cursoId: { type: string }
+        codigo: { type: string, examples: ["20262"] }
+        vigente: { type: boolean }
+        chTotal: { type: number }
+        periodos: { type: integer }
+        atividadesComplementaresExigidas: { type: number }
+        praticaExtensionistaExigida: { type: number }
+
+    Funil:
+      type: object
+      required: [etapas, atualizadoEm]
+      properties:
+        etapas:
+          type: array
+          items:
+            type: object
+            required: [etapa, total, atrasados, emAtencao]
+            properties:
+              etapa: { $ref: "#/components/schemas/Etapa" }
+              total: { type: integer }
+              atrasados: { type: integer }
+              emAtencao: { type: integer }
+        atualizadoEm: { type: string, format: date-time }
+
+    Indicador:
+      type: object
+      required: [id, rotulo, valor, numerador, denominador]
+      properties:
+        id: { type: string }
+        rotulo: { type: string }
+        valor: { type: [number, "null"] }
+        unidade: { type: string, enum: [PERCENTUAL, HORAS, DIAS, CONTAGEM, MINUTOS] }
+        numerador: { type: [number, "null"] }
+        numeradorRotulo: { type: [string, "null"] }
+        denominador: { type: [number, "null"] }
+        denominadorRotulo: { type: [string, "null"] }
+        composicao:
+          type: array
+          items:
+            type: object
+            properties:
+              rotulo: { type: string }
+              valor: { type: number }
+              percentual: { type: [number, "null"] }
+              denominador: { type: [number, "null"], description: "base da linha, quando a linha é uma taxa" }
+        serie:
+          type: array
+          items: { type: object, properties: { em: { type: string, format: date }, valor: { type: number } } }
+        comoLer: { type: string }
+        meta: { type: [string, "null"] }
+        detalhe: { type: [string, "null"], description: "leitura secundária curta, ex.: p90" }
+
+    Indicadores:
+      type: object
+      properties:
+        funil: { $ref: "#/components/schemas/Funil" }
+        fluxo: { type: array, items: { $ref: "#/components/schemas/Indicador" } }
+        resultado: { type: array, items: { $ref: "#/components/schemas/Indicador" } }
+        esforco: { type: array, items: { $ref: "#/components/schemas/Indicador" } }
+        experiencia: { type: array, items: { $ref: "#/components/schemas/Indicador" } }
+        ia: { type: array, items: { $ref: "#/components/schemas/Indicador" } }
+        geradoEm: { type: string, format: date-time }
+
+    Notificacao:
+      type: object
+      properties:
+        id: { type: string }
+        tipo: { type: string, enum: [ATRIBUIDO, PERGUNTA_COORDENACAO, RESPOSTA_COORDENACAO, MENCAO, SLA_ATENCAO, SLA_ESTOURADO, MENSAGEM_CANDIDATO, FALHA_ENVIO] }
+        casoId: { type: string }
+        titulo: { type: string }
+        detalhe: { type: string }
+        em: { type: string, format: date-time }
+        lida: { type: boolean }

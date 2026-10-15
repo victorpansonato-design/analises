@@ -1,0 +1,20 @@
+# Build e dependências
+build
+dist
+node_modules
+package-lock.json
+
+# Componentes shadcn/ui são código vendido (gerado pelo CLI) e mantêm o estilo
+# original do registry. Não reformatar para evitar churn e conflitos em updates.
+src/components/ui
+
+# Material de referência do projeto (especificação, contrato e exemplos): não reformatar.
+docs
+contracts
+fixtures
+PROMPT.md
+CLAUDE.md
+coverage
+
+# Gerado pelo MSW (`npx msw init public`).
+public/mockServiceWorker.js

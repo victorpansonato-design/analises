@@ -1,0 +1,331 @@
+/* Documento A4: cores próprias de papel, independentes do tema da interface. */
+.relatorio-analise {
+   display: none;
+}
+/*
+ * `@page` sem nome: com página nomeada o Chrome encerra o documento numa página padrão em branco,
+ * com o cabeçalho e o rodapé dele (data, título e URL do localhost). Margin boxes preenchidas em
+ * todas as bordas tomam o lugar desse cabeçalho e desse rodapé. Só o relatório é impresso no app.
+ */
+@page {
+   size: A4 portrait;
+   margin: 13mm 13mm 17mm;
+   @top-left {
+      content: "";
+   }
+   @top-center {
+      content: "";
+   }
+   @top-right {
+      content: "";
+   }
+   @bottom-left {
+      content: "Grupo Anchieta · Consulta rápida";
+      font-family: Arial, sans-serif;
+      font-size: 8pt;
+      color: #526174;
+   }
+   @bottom-right {
+      content: counter(page) " / " counter(pages);
+      font-family: Arial, sans-serif;
+      font-size: 8pt;
+      color: #526174;
+   }
+}
+@media print {
+   html:has(.relatorio-analise),
+   body:has(.relatorio-analise) {
+      background: #fff !important;
+      min-height: 0 !important;
+   }
+   body:has(.relatorio-analise) > :not(.relatorio-analise) {
+      display: none !important;
+   }
+   .relatorio-analise {
+      display: block;
+      color: #172b43;
+      background: #fff;
+      font-family: Inter, Arial, sans-serif;
+      font-size: 9pt;
+      line-height: 1.4;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+   }
+   .relatorio-analise * {
+      box-sizing: border-box;
+   }
+   .relatorio-cabecalho {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8mm;
+      border-bottom: 0.25mm solid #d7e0e9;
+      padding-bottom: 5mm;
+   }
+   .relatorio-marca {
+      display: flex;
+      align-items: center;
+      gap: 4mm;
+   }
+   .relatorio-marca img {
+      width: 33mm;
+      height: auto;
+   }
+   .relatorio-marca strong,
+   .relatorio-marca span,
+   .relatorio-emissao span {
+      display: block;
+   }
+   .relatorio-marca strong {
+      font-size: 10pt;
+   }
+   .relatorio-marca span,
+   .relatorio-emissao {
+      font-size: 8pt;
+      color: #526174;
+   }
+   .relatorio-emissao {
+      text-align: right;
+   }
+   .relatorio-emissao strong {
+      color: #1457a0;
+      font-size: 9pt;
+   }
+   .relatorio-identidade {
+      padding-top: 5mm;
+      break-inside: avoid;
+   }
+   .relatorio-analise h1 {
+      margin: 0;
+      font-size: 22pt;
+      font-weight: 650;
+      letter-spacing: -0.025em;
+      line-height: 1.15;
+   }
+   .relatorio-tipo {
+      color: #526174;
+      margin: 1.5mm 0 4mm;
+      font-size: 10pt;
+   }
+   .relatorio-identidade dl {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 3mm 5mm;
+      margin: 0;
+   }
+   .relatorio-aluno {
+      grid-column: span 2;
+   }
+   .relatorio-dado dt {
+      color: #526174;
+      font-size: 8pt;
+   }
+   .relatorio-dado dd {
+      margin: 0.5mm 0 0;
+      font-weight: 550;
+      overflow-wrap: anywhere;
+   }
+   .relatorio-aviso {
+      margin: 4mm 0 0;
+      padding: 2.5mm 3mm;
+      border-radius: 2mm;
+      background: #edf3fa;
+      color: #254f7a;
+      font-size: 8pt;
+   }
+   .relatorio-resumo {
+      display: grid;
+      grid-template-columns: 1.7fr repeat(3, 1fr);
+      gap: 4mm;
+      margin: 5mm 0 6mm;
+      break-inside: avoid;
+   }
+   .relatorio-resumo strong {
+      display: block;
+      font-size: 19pt;
+      font-weight: 600;
+      color: #1457a0;
+      font-variant-numeric: tabular-nums;
+   }
+   .relatorio-resumo span,
+   .relatorio-resumo small {
+      display: block;
+      color: #526174;
+      font-size: 8pt;
+   }
+   .relatorio-analise h2 {
+      font-size: 12pt;
+      font-weight: 600;
+      margin: 0 0 2mm;
+      break-after: avoid;
+   }
+   .relatorio-legenda {
+      font-size: 7.5pt;
+      color: #526174;
+      margin: 0 0 3mm;
+   }
+   .relatorio-tabela {
+      width: 100%;
+      table-layout: fixed;
+      border-collapse: collapse;
+      font-size: 8pt;
+      margin-bottom: 4mm;
+   }
+   .relatorio-tabela caption {
+      text-align: left;
+      font-weight: 600;
+      color: #1457a0;
+      padding: 1.5mm 0;
+      break-after: avoid;
+   }
+   .relatorio-tabela caption span {
+      font-weight: 400;
+      color: #526174;
+   }
+   .relatorio-col-disciplina {
+      width: 35%;
+   }
+   .relatorio-col-ch {
+      width: 9%;
+   }
+   .relatorio-col-origem {
+      width: 40%;
+   }
+   .relatorio-col-decisao {
+      width: 16%;
+   }
+   .relatorio-tabela thead {
+      display: table-header-group;
+   }
+   .relatorio-tabela tr {
+      break-inside: avoid;
+   }
+   .relatorio-tabela th {
+      background: #edf3fa;
+      color: #254f7a;
+      text-align: left;
+      font-weight: 600;
+      padding: 1.7mm 2mm;
+   }
+   .relatorio-tabela td {
+      vertical-align: top;
+      padding: 2mm;
+      border-bottom: 0.2mm solid #d7e0e9;
+      overflow-wrap: anywhere;
+   }
+   .relatorio-numero {
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+   }
+   .relatorio-tabela ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+   }
+   .relatorio-tabela li + li {
+      margin-top: 1.5mm;
+   }
+   .relatorio-origem-dados {
+      display: block;
+      color: #526174;
+      font-size: 7pt;
+   }
+   .relatorio-sem-origem {
+      color: #526174;
+   }
+   .relatorio-decisao {
+      font-weight: 600;
+   }
+   .relatorio-decisao[data-decisao="DISPENSA"] {
+      color: #166534;
+   }
+   .relatorio-final {
+      margin-top: 5mm;
+      break-inside: avoid;
+   }
+   .relatorio-cargas {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 3mm;
+      break-inside: avoid;
+   }
+   .relatorio-horas {
+      padding: 3mm;
+      border-radius: 2mm;
+   }
+   .relatorio-horas[data-tom="complementares"] {
+      background: #fff0aa;
+      color: #624700;
+   }
+   .relatorio-horas[data-tom="extensionista"] {
+      background: #d5f0dd;
+      color: #14532d;
+   }
+   .relatorio-horas[data-tom="eletivas"] {
+      background: #ffe0be;
+      color: #7c360c;
+   }
+   .relatorio-horas h3 {
+      font-size: 9pt;
+      font-weight: 600;
+      margin: 0 0 2mm;
+   }
+   .relatorio-horas p {
+      margin: 0;
+      font-size: 8pt;
+   }
+   .relatorio-horas .relatorio-horas-valor {
+      font-size: 20pt;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+   }
+   .relatorio-horas .relatorio-horas-restantes {
+      margin-top: 1.5mm;
+      font-weight: 600;
+   }
+   .relatorio-registros {
+      margin-top: 4mm;
+   }
+   .relatorio-registros h3 {
+      font-size: 9pt;
+      font-weight: 600;
+      margin: 0 0 1mm;
+      break-after: avoid;
+   }
+   .relatorio-registros ul {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+   }
+   .relatorio-registros li {
+      display: flex;
+      justify-content: space-between;
+      gap: 4mm;
+      border-bottom: 0.2mm solid #d7e0e9;
+      padding: 1.5mm 0;
+      break-inside: avoid;
+   }
+   .relatorio-registros strong {
+      white-space: nowrap;
+      font-variant-numeric: tabular-nums;
+   }
+   .relatorio-previsao {
+      margin: 4mm 0;
+      font-size: 8pt;
+      color: #526174;
+   }
+   .relatorio-final footer {
+      border-top: 0.25mm solid #d7e0e9;
+      padding-top: 3mm;
+      font-size: 8pt;
+      color: #526174;
+      break-inside: avoid;
+   }
+   .relatorio-final footer p {
+      margin: 0 0 1.5mm;
+   }
+   .relatorio-final footer strong {
+      color: #254f7a;
+      font-weight: 600;
+   }
+}

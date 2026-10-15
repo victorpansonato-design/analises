@@ -1,0 +1,357 @@
+{
+  "_aviso": "DADOS FICTÍCIOS e matriz PARCIAL. Nomes de disciplinas sem '_ficticio' foram vistos na tela atual (Administração · currículo 20262); a seed completa deve ter 40–50 itens por curso.",
+  "matriz": {
+    "id": "adm-20262",
+    "cursoId": "adm",
+    "codigo": "20262",
+    "vigente": true,
+    "chTotal": 3200,
+    "periodos": 8,
+    "atividadesComplementaresExigidas": 200,
+    "praticaExtensionistaExigida": 310
+  },
+  "itens": [
+    {
+      "id": "m-est",
+      "periodo": null,
+      "disciplina": "Estágio supervisionado",
+      "ch": 160,
+      "estado": "SUGERIDO",
+      "sugestao": {
+        "decisao": "REGULAR",
+        "origemIds": [],
+        "confianca": "ALTA",
+        "fonte": "IA",
+        "justificativa": "Sem disciplina correspondente na origem.",
+        "alertas": []
+      },
+      "decisao": null,
+      "pergunta": null
+    },
+    {
+      "id": "m-ext",
+      "periodo": null,
+      "disciplina": "Práticas extensionistas",
+      "ch": 310,
+      "estado": "SUGERIDO",
+      "sugestao": {
+        "decisao": "REGULAR",
+        "origemIds": [],
+        "confianca": "ALTA",
+        "fonte": "IA",
+        "justificativa": "Sem disciplina correspondente na origem.",
+        "alertas": []
+      },
+      "decisao": null,
+      "pergunta": null
+    },
+    {
+      "id": "m-101",
+      "periodo": 1,
+      "disciplina": "Bases da administração moderna",
+      "ch": 40,
+      "estado": "DECIDIDO",
+      "sugestao": {
+        "decisao": "DISPENSA",
+        "origemIds": [
+          "o1"
+        ],
+        "confianca": "REGRA",
+        "fonte": "REGRA",
+        "justificativa": "Equivalência registrada pela coordenação em 12/03/2026.",
+        "alertas": []
+      },
+      "decisao": {
+        "valor": "DISPENSA",
+        "origemIds": [
+          "o1"
+        ],
+        "origem": "REGRA",
+        "motivoAlteracao": null,
+        "por": {
+          "id": "u-ana-01",
+          "nome": "Analista Exemplo Um"
+        },
+        "em": "2026-10-09T13:20:00-03:00"
+      },
+      "pergunta": null
+    },
+    {
+      "id": "m-102",
+      "periodo": 1,
+      "disciplina": "Bases da contabilidade business",
+      "ch": 60,
+      "estado": "SUGERIDO",
+      "sugestao": {
+        "decisao": "DISPENSA",
+        "origemIds": [
+          "o2"
+        ],
+        "confianca": "ALTA",
+        "fonte": "IA",
+        "justificativa": "Conteúdo e CH compatíveis (60 h ÷ 60 h).",
+        "alertas": []
+      },
+      "decisao": null,
+      "pergunta": null
+    },
+    {
+      "id": "m-103",
+      "periodo": 1,
+      "disciplina": "Competências em comunicação escrita",
+      "ch": 60,
+      "estado": "SUGERIDO",
+      "sugestao": {
+        "decisao": "REGULAR",
+        "origemIds": [
+          "o3"
+        ],
+        "confianca": "MEDIA",
+        "fonte": "IA",
+        "justificativa": "CH da origem abaixo do mínimo (40 h ÷ 60 h).",
+        "alertas": []
+      },
+      "decisao": null,
+      "pergunta": null
+    },
+    {
+      "id": "m-104",
+      "periodo": 1,
+      "disciplina": "Economia das decisões empresariais",
+      "ch": 60,
+      "estado": "SUGERIDO",
+      "sugestao": {
+        "decisao": "REGULAR",
+        "origemIds": [],
+        "confianca": "ALTA",
+        "fonte": "IA",
+        "justificativa": "Sem disciplina correspondente na origem.",
+        "alertas": []
+      },
+      "decisao": null,
+      "pergunta": null
+    },
+    {
+      "id": "m-105",
+      "periodo": 1,
+      "disciplina": "Lógica empresarial: bases quantitativas",
+      "ch": 60,
+      "estado": "SUGERIDO",
+      "sugestao": {
+        "decisao": "REGULAR",
+        "origemIds": [],
+        "confianca": "ALTA",
+        "fonte": "IA",
+        "justificativa": "Sem disciplina correspondente na origem.",
+        "alertas": []
+      },
+      "decisao": null,
+      "pergunta": null
+    },
+    {
+      "id": "m-106",
+      "periodo": 1,
+      "disciplina": "Tech business",
+      "ch": 40,
+      "estado": "SUGERIDO",
+      "sugestao": {
+        "decisao": "REGULAR",
+        "origemIds": [],
+        "confianca": "ALTA",
+        "fonte": "IA",
+        "justificativa": "Sem disciplina correspondente na origem.",
+        "alertas": []
+      },
+      "decisao": null,
+      "pergunta": null
+    },
+    {
+      "id": "m-201",
+      "periodo": 2,
+      "disciplina": "Administração em cenários dinâmicos",
+      "ch": 60,
+      "estado": "SUGERIDO",
+      "sugestao": {
+        "decisao": "REGULAR",
+        "origemIds": [],
+        "confianca": "ALTA",
+        "fonte": "IA",
+        "justificativa": "Sem disciplina correspondente na origem.",
+        "alertas": []
+      },
+      "decisao": null,
+      "pergunta": null
+    },
+    {
+      "id": "m-202",
+      "periodo": 2,
+      "disciplina": "Matemática financeira aplicada",
+      "ch": 60,
+      "estado": "SUGERIDO",
+      "sugestao": {
+        "decisao": "DISPENSA",
+        "origemIds": [
+          "o4"
+        ],
+        "confianca": "BAIXA",
+        "fonte": "IA",
+        "justificativa": "Nota da origem extraída com baixa confiança; conferir no histórico.",
+        "alertas": [
+          "Confira a nota no documento"
+        ]
+      },
+      "decisao": null,
+      "pergunta": null,
+      "_ficticio": true
+    },
+    {
+      "id": "m-701",
+      "periodo": 7,
+      "disciplina": "Inteligência comportamental nas organizações",
+      "ch": 60,
+      "estado": "SUGERIDO",
+      "sugestao": {
+        "decisao": "REGULAR",
+        "origemIds": [],
+        "confianca": "ALTA",
+        "fonte": "IA",
+        "justificativa": "Sem disciplina correspondente na origem.",
+        "alertas": []
+      },
+      "decisao": null,
+      "pergunta": null
+    },
+    {
+      "id": "m-702",
+      "periodo": 7,
+      "disciplina": "Startup lab: inovação e negócios digitais",
+      "ch": 60,
+      "estado": "SUGERIDO",
+      "sugestao": {
+        "decisao": "REGULAR",
+        "origemIds": [],
+        "confianca": "ALTA",
+        "fonte": "IA",
+        "justificativa": "Sem disciplina correspondente na origem.",
+        "alertas": []
+      },
+      "decisao": null,
+      "pergunta": null
+    }
+  ],
+  "origem": [
+    {
+      "id": "o1",
+      "nome": "Teoria geral da administração",
+      "ies": "Faculdade Fictícia de Gestão",
+      "ch": 60,
+      "nota": 8.5,
+      "ano": 2024,
+      "semestre": 1,
+      "situacao": "APROVADO",
+      "confiancaExtracao": 0.97,
+      "usadaEm": [
+        "m-101"
+      ]
+    },
+    {
+      "id": "o2",
+      "nome": "Contabilidade introdutória",
+      "ies": "Faculdade Fictícia de Gestão",
+      "ch": 60,
+      "nota": 7.0,
+      "ano": 2024,
+      "semestre": 1,
+      "situacao": "APROVADO",
+      "confiancaExtracao": 0.95,
+      "usadaEm": [
+        "m-102"
+      ]
+    },
+    {
+      "id": "o3",
+      "nome": "Comunicação e expressão",
+      "ies": "Faculdade Fictícia de Gestão",
+      "ch": 40,
+      "nota": 9.0,
+      "ano": 2024,
+      "semestre": 1,
+      "situacao": "APROVADO",
+      "confiancaExtracao": 0.93,
+      "usadaEm": []
+    },
+    {
+      "id": "o4",
+      "nome": "Matemática financeira",
+      "ies": "Faculdade Fictícia de Gestão",
+      "ch": 80,
+      "nota": 6.5,
+      "ano": 2024,
+      "semestre": 2,
+      "situacao": "APROVADO",
+      "confiancaExtracao": 0.71,
+      "usadaEm": [
+        "m-202"
+      ]
+    },
+    {
+      "id": "o5",
+      "nome": "Estatística aplicada",
+      "ies": "Faculdade Fictícia de Gestão",
+      "ch": 60,
+      "nota": 4.0,
+      "ano": 2024,
+      "semestre": 2,
+      "situacao": "REPROVADO",
+      "confiancaExtracao": 0.9,
+      "usadaEm": []
+    }
+  ],
+  "atividadesComplementares": [
+    {
+      "id": "ac1",
+      "atividade": "Curso livre",
+      "ch": 40,
+      "ano": 2025,
+      "periodo": null,
+      "inicio": "2025-03-01",
+      "fim": "2025-04-30"
+    }
+  ],
+  "praticaExtensionista": [],
+  "disciplinasPersonalizadasPos": [],
+  "resumo": {
+    "chTotalMatriz": 3200,
+    "chDispensada": 40,
+    "contagem": {
+      "dispensa": 1,
+      "regular": 0,
+      "dp": 0,
+      "adap": 0,
+      "pendentes": 11,
+      "perguntas": 0
+    },
+    "periodoIngressoSugerido": 2,
+    "periodoIngresso": null,
+    "previsaoSemestres": null,
+    "atividadesComplementares": {
+      "horas": 40,
+      "exigidas": 200
+    },
+    "praticaExtensionista": {
+      "horas": 0,
+      "exigidas": 310
+    },
+    "bloqueios": [
+      {
+        "mensagem": "Faltam 11 disciplinas sem decisão",
+        "itemId": null
+      },
+      {
+        "mensagem": "Defina o período de ingresso",
+        "itemId": null
+      }
+    ]
+  },
+  "versao": 7
+}
