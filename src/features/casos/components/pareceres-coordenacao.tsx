@@ -1,6 +1,6 @@
 /**
  * Pareceres da coordenação (`/pareceres`, acesso Coordenadores; decisão de 15/10/2026). A porta de
- * entrada do coordenador: só o que espera o parecer dele, com o passo a passo à vista.
+ * entrada do coordenador: só o que espera o parecer dele, direto (sem passo a passo desde 16/10/2026).
  *
  * - "Aguardando o seu parecer": protocolos em AGUARDANDO_COORDENACAO sob a responsabilidade dele.
  * - "Devolvidos para a equipe": os que ele já respondeu e a equipe de análises está conferindo.
@@ -8,7 +8,7 @@
  * Loading/erro/vazio por `AsyncState`.
  */
 import { motion } from "motion/react";
-import { ArrowRight, ClipboardCheck, GraduationCap, MessageSquareText, ScanSearch } from "lucide-react";
+import { ArrowRight, GraduationCap } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import { EmptyPanel } from "@/components/core/empty-panel";
@@ -43,16 +43,6 @@ const BASE: FiltrosFila = {
    ordem: "SLA",
 };
 
-const PASSOS = [
-   { icone: ClipboardCheck, titulo: "Leia a pergunta", texto: "A analista diz o que precisa da sua avaliação em cada disciplina." },
-   { icone: ScanSearch, titulo: "Compare com o histórico", texto: "Ementa, carga horária e nota lado a lado com o histórico do aluno." },
-   {
-      icone: MessageSquareText,
-      titulo: "Dê o parecer e devolva",
-      texto: "Diga se aproveita e por quê. O parecer vai para as observações e a análise volta para a equipe conferir.",
-   },
-] as const;
-
 function linkDoParecer(caso: CasoResumo): string {
    const p = new URLSearchParams({ caso: caso.id, aba: "analise", filtro: "coordenacao", voltar: "pareceres" });
    return `/analises?${p.toString()}`;
@@ -75,22 +65,6 @@ export function PareceresCoordenacao() {
             </h1>
             <p className="mt-1 text-[13px] text-ink-3">Os protocolos em que a equipe de análises pediu o seu parecer técnico.</p>
          </header>
-
-         <ol aria-label="Como dar o parecer" className="grid grid-cols-3 gap-3">
-            {PASSOS.map((p, i) => (
-               <li key={p.titulo} className="flex items-start gap-3 rounded-xl bg-card p-4">
-                  <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-brand-soft text-brand-text">
-                     <p.icone aria-hidden className="size-4.5" />
-                  </span>
-                  <span>
-                     <span className="block text-[13px] font-semibold text-ink">
-                        <span className="font-mono text-ink-4">{i + 1}.</span> {p.titulo}
-                     </span>
-                     <span className="mt-0.5 block text-[12px] leading-relaxed text-ink-3">{p.texto}</span>
-                  </span>
-               </li>
-            ))}
-         </ol>
 
          <section aria-labelledby="pareceres-pendentes" className="space-y-3">
             <SectionLabel>

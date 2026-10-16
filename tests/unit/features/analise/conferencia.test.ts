@@ -6,7 +6,9 @@ import {
    documentosDoHistorico,
    grifoDoItem,
    iaEmDuvida,
+   perguntaAberta,
    proximaDuvida,
+   proximaQue,
    semestresDoDocumento,
 } from "@/features/analise/domain/conferencia";
 
@@ -60,5 +62,25 @@ describe("grifo da IA", () => {
       expect(proximaDuvida(itens, "c")).toBe("a");
       expect(proximaDuvida(itens, "a", -1)).toBe("c");
       expect(proximaDuvida([item("x", { sugestao: sugestao({ confianca: "ALTA" }) })], null)).toBeNull();
+   });
+});
+
+describe("navegação pelas perguntas da coordenação", () => {
+   const itens = [
+      item("a", { estado: "PERGUNTA_ABERTA" }),
+      item("b"),
+      item("c", { estado: "RESPONDIDO" }),
+      item("d", { estado: "PERGUNTA_ABERTA" }),
+   ];
+
+   it("anda só pelas perguntas abertas e dá a volta", () => {
+      expect(proximaQue(itens, "a", perguntaAberta)).toBe("d");
+      expect(proximaQue(itens, "d", perguntaAberta)).toBe("a");
+      expect(proximaQue(itens, "a", perguntaAberta, -1)).toBe("d");
+      expect(proximaQue(itens, null, perguntaAberta)).toBe("a");
+   });
+
+   it("sem nenhuma aberta, devolve nulo", () => {
+      expect(proximaQue([item("x"), item("y", { estado: "RESPONDIDO" })], "x", perguntaAberta)).toBeNull();
    });
 });

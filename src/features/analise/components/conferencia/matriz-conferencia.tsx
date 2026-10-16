@@ -3,23 +3,33 @@
  * nome, CH, a nota da origem e a decisão (Dispensa, DP, ADAP, Regular). Igual ao que a grade já
  * mostra, mais compacto para caber ao lado do histórico.
  *
- * - Clicar na linha seleciona: o histórico à esquerda grifa as origens dela.
+ * - Clicar na linha (inclusive na decisão) seleciona: o histórico à esquerda grifa as origens dela.
+ * - Pergunta aberta à coordenação mostra "Aguardando parecer" no lugar da decisão; com
+ *   `marcarPerguntas` (coordenação), as perguntas ganham o ícone de conversa.
  * - O ponto âmbar com brilho marca onde a IA está em dúvida; o filtro "Dúvidas da IA" mostra só elas.
  * - A linha selecionada tem um fundo que desliza de uma linha para a outra (`layoutId`).
  * - Opção pré-marcada pela IA aparece translúcida até alguém confirmar (`fantasma`).
  */
 import { motion } from "motion/react";
-import { Sparkles } from "lucide-react";
+import { MessageSquareText, Sparkles } from "lucide-react";
 import { Fragment, useEffect, useRef } from "react";
 
 import { SegmentedControl } from "@/components/core/segmented-control";
+import { Status } from "@/components/core/status";
 import { decimal, horas } from "@/lib/format";
 import { emphasis } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 import type { DecisaoItem } from "@/features/casos";
 
 import { iaEmDuvida } from "@/features/analise/domain/conferencia";
-import { OPCOES_DECISAO, agruparPorPeriodo, decisaoExibida, origensDoItem, tituloPeriodo } from "@/features/analise/domain/analise.domain";
+import {
+   OPCOES_DECISAO,
+   agruparPorPeriodo,
+   decisaoExibida,
+   origensDoItem,
+   paraCoordenacao,
+   tituloPeriodo,
+} from "@/features/analise/domain/analise.domain";
 import type { ItemAnalise, ItemOrigem } from "@/features/analise/types/analise.schema";
 
 const LINHA = "grid grid-cols-[84px_minmax(0,1fr)_48px_40px_228px] items-center gap-x-3";
@@ -29,11 +39,20 @@ interface MatrizConferenciaProps {
    origemPorId: ReadonlyMap<string, ItemOrigem>;
    selecionadoId: string | null;
    podeDecidir: boolean;
+   marcarPerguntas?: boolean;
    onSelecionar: (id: string) => void;
    onDecidir: (item: ItemAnalise, valor: DecisaoItem) => void;
 }
 
-export function MatrizConferencia({ itens, origemPorId, selecionadoId, podeDecidir, onSelecionar, onDecidir }: MatrizConferenciaProps) {
+export function MatrizConferencia({
+   itens,
+   origemPorId,
+   selecionadoId,
+   podeDecidir,
+   marcarPerguntas = false,
+   onSelecionar,
+   onDecidir,
+}: MatrizConferenciaProps) {
    const grupos = agruparPorPeriodo([...itens]);
    const linhas = useRef(new Map<string, HTMLDivElement>());
 
@@ -79,10 +98,7 @@ export function MatrizConferencia({ itens, origemPorId, selecionadoId, podeDecid
                            if (el) linhas.current.set(item.id, el);
                            else linhas.current.delete(item.id);
                         }}
-                        onClick={e => {
-                           if ((e.target as HTMLElement).closest("[role=radiogroup]")) return;
-                           onSelecionar(item.id);
-                        }}
+                        onClick={() => onSelecionar(item.id)}
                         className={cn(
                            LINHA,
                            "relative cursor-pointer border-b border-hairline px-4 py-2 transition-colors",
@@ -106,7 +122,6 @@ export function MatrizConferencia({ itens, origemPorId, selecionadoId, podeDecid
                         <span role="gridcell" className="relative flex min-w-0 items-center gap-1.5">
                            <button
                               type="button"
-                              onClick={() => onSelecionar(item.id)}
                               className={cn(
                                  "line-clamp-2 min-w-0 text-left text-[12.5px] leading-snug outline-none focus-visible:underline",
                                  ativo ? "font-semibold text-ink" : "font-medium text-ink",
@@ -115,6 +130,15 @@ export function MatrizConferencia({ itens, origemPorId, selecionadoId, podeDecid
                            >
                               {item.disciplina}
                            </button>
+                           {marcarPerguntas && paraCoordenacao(item) ? (
+                              <span
+                                 title="Pergunta da analista"
+                                 className="grid size-5 shrink-0 place-items-center rounded-full bg-warn-soft text-warn-ink"
+                              >
+                                 <MessageSquareText aria-hidden className="size-3" />
+                                 <span className="sr-only">Pergunta da analista</span>
+                              </span>
+                           ) : null}
                            {duvida ? (
                               <span
                                  title="A IA está em dúvida nesta disciplina"
@@ -132,17 +156,23 @@ export function MatrizConferencia({ itens, origemPorId, selecionadoId, podeDecid
                            {origens[0]?.nota === null || origens.length === 0 ? "—" : decimal(origens[0].nota ?? 0)}
                         </span>
                         <span role="gridcell" className="relative">
-                           <SegmentedControl
-                              options={OPCOES_DECISAO}
-                              value={exibida.valor}
-                              onChange={v => onDecidir(item, v)}
-                              layoutId={`conferencia-decisao-${item.id}`}
-                              ariaLabel={`Decisão para ${item.disciplina}`}
-                              size="xs"
-                              full
-                              fantasma={exibida.fantasma}
-                              disabled={!podeDecidir || item.estado === "PERGUNTA_ABERTA"}
-                           />
+                           {item.estado === "PERGUNTA_ABERTA" ? (
+                              <span className="flex h-7 items-center pl-1">
+                                 <Status tone="warn">Aguardando parecer</Status>
+                              </span>
+                           ) : (
+                              <SegmentedControl
+                                 options={OPCOES_DECISAO}
+                                 value={exibida.valor}
+                                 onChange={v => onDecidir(item, v)}
+                                 layoutId={`conferencia-decisao-${item.id}`}
+                                 ariaLabel={`Decisão para ${item.disciplina}`}
+                                 size="xs"
+                                 full
+                                 fantasma={exibida.fantasma}
+                                 disabled={!podeDecidir}
+                              />
+                           )}
                         </span>
                      </div>
                   );

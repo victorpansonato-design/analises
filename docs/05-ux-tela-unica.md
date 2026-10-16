@@ -64,13 +64,15 @@ MAT é o vínculo do aluno, independente da etapa. Check verde significa matricu
 
 Depois da proposta (ou do aproveitamento concluído), "Reabrir análise" abre na aba Análise: escolher o destino (equipe de análises ou coordenação do curso), o motivo, o que o aluno contestou e as disciplinas contestadas (obrigatórias para a coordenação). As disciplinas ganham a marca "Contestada" e o filtro "Contestadas"; na coordenação, cada uma vira pergunta. O resumo deixa de valer e a proposta sai de novo depois da nova conclusão.
 
-## Coordenadores (15/10/2026)
+## Coordenadores (15/10/2026, enxuto em 16/10/2026)
 
-O acesso Coordenadores entra por "Pareceres": passo a passo, protocolos aguardando o parecer dele e os devolvidos. No protocolo, cada disciplina tem três passos (ler a pergunta, comparar com o histórico, dar o parecer em linguagem simples: aproveita, aproveita com adaptação, cursa como dependência, não aproveita). Fundamento técnico obrigatório quando diverge da sugestão; o parecer vai para as observações do protocolo. Ao terminar, "Devolver para a analista" no Próximo passo.
+O acesso Coordenadores entra por "Pareceres": protocolos aguardando o parecer dele e os devolvidos, sem passo a passo. No protocolo, cada disciplina perguntada é um card direto: a pergunta da analista (com a sugestão), matriz × histórico (ementa, origens e CH comparada) e o parecer numa linha, com as siglas da equipe (Dispensa, DP, ADAP, Regular; a sugestão marcada por um ponto), o fundamento ao lado e "Registrar". Fundamento obrigatório quando diverge da sugestão; o parecer vai para as observações do protocolo. Ao terminar, "Devolver para a analista" no Próximo passo.
 
-## Conferência lado a lado (15/10/2026)
+## Conferência lado a lado (15/10/2026, fluxo revisto em 16/10/2026)
 
-"Conferir lado a lado" (barra da análise ou "Ver no histórico escolar" no parecer) abre dois painéis grandes: à esquerda, o histórico escolar anexado (uma aba por instituição); à direita, a matriz atual por período com código, disciplina, CH, nota e decisão. Selecionar uma disciplina grifa as origens no histórico com animação: âmbar quando a IA está em dúvida (com a nota da IA ao lado), azul quando é correspondência. "Dúvidas da IA" filtra; "Próxima dúvida" ou `]` e `[` caminham por elas; 1 a 4 decidem; passar o mouse numa linha do histórico permite usá-la na disciplina. URL: `conferir=1` e `item`.
+"Conferir lado a lado" (barra da análise ou "Lado a lado" no card do parecer) abre dois painéis grandes: à esquerda, o histórico escolar anexado (uma aba por instituição); à direita, a matriz atual por período com código, disciplina, CH, nota e decisão. Selecionar uma disciplina grifa as origens no histórico com animação: âmbar quando a IA está em dúvida (com a nota da IA ao lado), azul quando é correspondência. "Dúvidas da IA" filtra; "Próxima dúvida" ou `]` e `[` caminham por elas; 1 a 4 decidem; passar o mouse numa linha do histórico permite usá-la na disciplina. URL: `conferir=1` e `item`.
+
+Fluidez: a disciplina decidida continua na lista até fechar; 1 a 4 decide e já passa para a próxima (próxima dúvida no filtro de dúvidas); clicar em qualquer ponto do painel mantém os atalhos; a grade de trás não toma o foco. Com a análise na coordenação, a conferência vira o lugar do parecer: filtro "Perguntas" (e "Todas"), abre na primeira pergunta aberta, perguntas marcadas na matriz com "Aguardando parecer", e o parecer embaixo da matriz (pergunta, ementa e siglas). 1 a 4 escolhe a sigla, Enter registra e a próxima pergunta entra sozinha.
 
 ## Responsividade e estados
 

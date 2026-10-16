@@ -4,7 +4,7 @@
  *
  * Grifo da IA (a parte que dá vida à conferência):
  * - Ao selecionar uma disciplina da matriz, as linhas de origem ganham um marca-texto que "corre"
- *   da esquerda para a direita (scaleX, 550 ms, emphasis), uma linha por vez.
+ *   da esquerda para a direita (scaleX, 420 ms, emphasis), uma linha por vez.
  * - Âmbar quando a IA está em dúvida; azul quando é só a correspondência. A nota da IA desliza para
  *   junto da linha grifada (`layoutId`), em vez de piscar num canto da tela.
  * - A linha grifada rola até o centro do papel, suave. Com `prefers-reduced-motion`, sem animação.
@@ -70,7 +70,7 @@ export function HistoricoPapel({
    useEffect(() => {
       if (!primeiro) return;
       const el = linhas.current.get(primeiro);
-      const t = window.setTimeout(() => el?.scrollIntoView?.({ behavior: reduzido ? "auto" : "smooth", block: "center" }), 60);
+      const t = window.setTimeout(() => el?.scrollIntoView?.({ behavior: reduzido ? "auto" : "smooth", block: "center" }), 30);
       return () => window.clearTimeout(t);
    }, [primeiro, selecionado?.id, reduzido]);
 
@@ -156,14 +156,14 @@ export function HistoricoPapel({
                                        )}
                                        initial={reduzido ? false : { scaleX: 0, opacity: 0.35 }}
                                        animate={{ scaleX: 1, opacity: 1 }}
-                                       transition={{ duration: 0.55, ease: emphasis, delay: 0.2 + ordemGrifo * 0.12 }}
+                                       transition={{ duration: 0.42, ease: emphasis, delay: 0.08 + ordemGrifo * 0.1 }}
                                     />
                                     <motion.span
                                        aria-hidden
                                        className={cn("absolute inset-y-[3px] -left-3.5 w-[3px] rounded-full", cor.barra)}
                                        initial={reduzido ? false : { scaleY: 0 }}
                                        animate={{ scaleY: 1 }}
-                                       transition={{ duration: 0.3, ease: emphasis, delay: 0.1 + ordemGrifo * 0.12 }}
+                                       transition={{ duration: 0.25, ease: emphasis, delay: ordemGrifo * 0.1 }}
                                     />
                                  </Fragment>
                               ) : null}
@@ -234,7 +234,7 @@ function NotaIa({ grifo, chDestino, chOrigem }: { grifo: Grifo; chDestino: numbe
          initial={{ opacity: 0, y: -4 }}
          animate={{ opacity: 1, y: 0 }}
          exit={{ opacity: 0 }}
-         transition={{ duration: 0.32, ease: emphasis, delay: 0.25 }}
+         transition={{ duration: 0.28, ease: emphasis, delay: 0.12 }}
          className={cn(
             "my-1.5 flex items-start gap-2 rounded-lg px-3 py-2 text-[11.5px] leading-relaxed",
             duvida ? "bg-[oklch(96%_0.05_85)] text-[#5a4304]" : "bg-[#eef3fb] text-[#23406e]",

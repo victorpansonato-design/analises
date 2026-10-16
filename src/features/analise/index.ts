@@ -37,4 +37,4 @@ export {
    type FiltroAnalise,
    type GrupoPeriodo,
 } from "@/features/analise/domain/analise.domain";
-export { EXPLICACAO_PARECER, ORDEM_PARECER, ROTULO_PARECER, TITULO_PARECER, textoDoParecer } from "@/features/analise/domain/parecer";
+export { textoDoParecer } from "@/features/analise/domain/parecer";

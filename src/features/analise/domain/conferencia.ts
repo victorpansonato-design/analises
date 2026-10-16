@@ -93,14 +93,25 @@ export function documentoDoGrifo(docs: readonly DocumentoHistorico[], grifo: Gri
    return docs.find(d => d.itens.some(o => o.id === alvo))?.id ?? null;
 }
 
-/** Próxima disciplina em que a IA tem dúvida, a partir da atual (dá a volta). */
-export function proximaDuvida(itens: readonly ItemAnalise[], atualId: string | null, passo: 1 | -1 = 1): string | null {
-   const duvidas = itens.filter(iaEmDuvida);
-   if (duvidas.length === 0) return null;
+/** Próxima disciplina que atende ao critério, a partir da atual (dá a volta; a atual só se for a única). */
+export function proximaQue(
+   itens: readonly ItemAnalise[],
+   atualId: string | null,
+   criterio: (item: ItemAnalise) => boolean,
+   passo: 1 | -1 = 1,
+): string | null {
    const i = itens.findIndex(x => x.id === atualId);
    for (let k = 1; k <= itens.length; k++) {
       const c = itens[(i + passo * k + itens.length * 2) % itens.length];
-      if (c && iaEmDuvida(c)) return c.id;
+      if (c && criterio(c)) return c.id;
    }
-   return duvidas[0].id;
+   return null;
 }
+
+/** Próxima disciplina em que a IA tem dúvida, a partir da atual (dá a volta). */
+export function proximaDuvida(itens: readonly ItemAnalise[], atualId: string | null, passo: 1 | -1 = 1): string | null {
+   return proximaQue(itens, atualId, iaEmDuvida, passo);
+}
+
+/** Pergunta da analista que ainda espera o parecer da coordenação. */
+export const perguntaAberta = (item: ItemAnalise): boolean => item.estado === "PERGUNTA_ABERTA";

@@ -103,7 +103,7 @@ describe("reabrir análise depois da proposta", () => {
       expect(r.status).toBe(200);
       const parecer = (db.eventos.get(c.id) ?? []).find(e => e.tipo === "coordenacao.parecer");
       expect(parecer?.categoria).toBe("NOTA");
-      expect(parecer?.detalhe).toContain("Não aproveita");
+      expect(parecer?.detalhe).toContain("Regular.");
       expect(parecer?.detalhe).toContain("Fundamento: A ementa de origem não cobre");
    });
 });

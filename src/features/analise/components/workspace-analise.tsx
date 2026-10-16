@@ -189,13 +189,15 @@ export function WorkspaceAnalise({ caso, analise, preAnalise, modoCoordenacao }:
       if (url.item && url.item !== focoBruto && porId.has(url.item)) irPara(url.item, "center");
    }
 
+   // Com a conferência aberta, a grade de trás não toma o foco dela; ao fechar, foca a última disciplina vista.
+   const conferindo = url.conferir;
    useEffect(() => {
-      if (!alvo) return;
+      if (!alvo || conferindo) return;
       const el = document.getElementById(`linha-${alvo.id}`);
       if (!el) return;
       el.focus({ preventScroll: true });
       el.scrollIntoView?.({ block: alvo.bloco });
-   }, [alvo]);
+   }, [alvo, conferindo]);
 
    // Espera fontes e marca: o PDF não pode sair sem o logo nem herdar elementos da interface.
    const { imprimir, limparImprimir } = url;
@@ -284,15 +286,17 @@ export function WorkspaceAnalise({ caso, analise, preAnalise, modoCoordenacao }:
       ancora.current = id;
    }, []);
 
-   function responderItem(item: ItemAnalise, entrada: RespostaEntrada) {
+   function responderItem(item: ItemAnalise, entrada: RespostaEntrada, aoConcluir?: () => void) {
       responder.mutate(
          { itemId: item.id, entrada },
          {
-            onSuccess: () =>
+            onSuccess: () => {
                notificar({
-                  titulo: `Resposta registrada: ${item.disciplina}`,
+                  titulo: `Parecer registrado: ${item.disciplina}`,
                   detalhe: entrada.usarComoRegra ? "Virou regra para os próximos casos." : undefined,
-               }),
+               });
+               aoConcluir?.();
+            },
          },
       );
    }
@@ -653,6 +657,11 @@ export function WorkspaceAnalise({ caso, analise, preAnalise, modoCoordenacao }:
             podeDecidir={podeDecidir}
             onFechar={() => url.setConferir(false)}
             onSelecionar={gravarItem}
+            parecer={
+               modoCoordenacao
+                  ? { podeResponder: !!acaoResponder?.habilitada, salvando: responder.isPending, onResponder: responderItem }
+                  : null
+            }
             onDecidir={(item, valor, origemIds) => {
                if (!podeDecidir || item.estado === "PERGUNTA_ABERTA") return;
                fixar([item.id]);
