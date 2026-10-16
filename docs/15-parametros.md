@@ -114,3 +114,12 @@ Motivos de recusa de documento: `ILEGIVEL` · `INCOMPLETO` · `DOCUMENTO_ERRADO`
 | `mesesDeHistorico` | 6 meses no seletor e no histórico do consultor | [proposta] |
 
 Projeção = realizado ÷ dias úteis decorridos × dias úteis do mês. É sempre rotulada como estimativa.
+
+## 11. Acompanhamento do aluno (link público)
+
+| Chave (`CONTATO_ALUNO`) | Valor | Status |
+|---|---|---|
+| `whatsapp` | (11) 94847-7000, com a mensagem já começada e o protocolo | [definido pela dona do produto] |
+| `appGrupoAnchieta` | App Store: apps.apple.com/br/app/grupo-anchieta/id1589456985 | [VALIDAR] link da Google Play |
+| senha inicial exibida | "seu CPF, só os números"; o CPF em si não aparece no link público | [proposta] |
+| `ATUALIZAR_ACOMPANHAMENTO_MS` | 30000 (e ao voltar para a aba) | [proposta] |

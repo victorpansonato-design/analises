@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useAgora } from "@/hooks/use-agora";
 import { pageVariants } from "@/lib/motion";
 import { cn } from "@/lib/utils";
+import { LinkAluno } from "@/features/acompanhamento";
 import { AnaliseTab } from "@/features/analise";
 import { AbaDados, FilaCasos, FunilEtapas, PainelCaso, acaoDoCaso, useCasosUrlState, type RenderAba } from "@/features/casos";
 import { MensagemCandidato } from "@/features/comunicacao";
@@ -52,6 +53,7 @@ export default function AnalisesPage() {
                      }
                   />
                )}
+               renderIdentidade={caso => <LinkAluno caso={caso} />}
                onVoltar={voltar}
             />
          ) : (

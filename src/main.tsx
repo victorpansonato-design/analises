@@ -1,5 +1,4 @@
 import { env } from "@/config/env";
-import { AuthProvider } from "@/contexts/auth/auth-context";
 import { QueryProvider } from "@/providers/query-provider";
 import AppRoute from "@/routes/app.routes";
 import "@/stores/theme.store";
@@ -20,9 +19,7 @@ void prepararDados().then(() => {
       <StrictMode>
          <MotionConfig reducedMotion="user">
             <QueryProvider>
-               <AuthProvider>
-                  <AppRoute />
-               </AuthProvider>
+               <AppRoute />
             </QueryProvider>
          </MotionConfig>
       </StrictMode>,

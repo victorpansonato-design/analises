@@ -1,12 +1,20 @@
 /** Identificação do protocolo em tela inteira, com retorno e acesso às demais análises do aluno. */
 import { ArrowLeft, Files, Check, X } from "lucide-react";
+import type { ReactNode } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { fullDate } from "@/lib/format";
 import { useCasosUrlState } from "@/features/casos/hooks/use-casos-url-state";
 import { ROTULO_MODALIDADE, ROTULO_TIPO_COMPLETO, ROTULO_TURNO, type CasoDetalhe } from "@/features/casos/types/caso.schema";
 
-export function FaixaIdentidade({ caso, onVoltar }: { caso: CasoDetalhe; onVoltar?: () => void }) {
+interface FaixaIdentidadeProps {
+   caso: CasoDetalhe;
+   onVoltar?: () => void;
+   /** Composto pela página (ex.: link do aluno), à direita, abaixo do protocolo. */
+   extra?: ReactNode;
+}
+
+export function FaixaIdentidade({ caso, onVoltar, extra }: FaixaIdentidadeProps) {
    const { buscarAluno } = useCasosUrlState();
    const [params] = useSearchParams();
    const dosPareceres = params.get("voltar") === "pareceres";
@@ -34,7 +42,10 @@ export function FaixaIdentidade({ caso, onVoltar }: { caso: CasoDetalhe; onVolta
                   <span>Incluída em {fullDate(caso.criadoEm)}</span>
                </p>
             </div>
-            <span className="caso-protocolo rounded-md bg-surface-2 px-3 py-2 font-mono text-[12px] text-ink-2">{caso.protocolo}</span>
+            <div className="flex flex-col items-end gap-2.5">
+               <span className="caso-protocolo rounded-md bg-surface-2 px-3 py-2 font-mono text-[12px] text-ink-2">{caso.protocolo}</span>
+               {extra}
+            </div>
          </div>
          <p className="mt-4 flex flex-wrap gap-x-2 gap-y-1 text-[13px] text-ink-2">
             <span className="font-medium">{caso.destino.cursoNome}</span>

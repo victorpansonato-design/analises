@@ -42,6 +42,8 @@ interface PainelCasoProps {
    renderAba: RenderAba;
    /** A página compõe o painel da equipe, disponível em todas as abas. */
    renderLateral?: (caso: CasoDetalhe) => ReactNode;
+   /** Complemento da faixa azul (ex.: link do aluno), também composto pela página. */
+   renderIdentidade?: (caso: CasoDetalhe) => ReactNode;
    /** Telas estreitas: o painel abre por cima da fila e oferece "Voltar à fila". */
    onVoltar?: () => void;
 }
@@ -63,7 +65,7 @@ function SkeletonPainel() {
    );
 }
 
-export function PainelCaso({ renderAba, renderLateral, onVoltar }: PainelCasoProps) {
+export function PainelCaso({ renderAba, renderLateral, renderIdentidade, onVoltar }: PainelCasoProps) {
    const { casoId, abrirCaso } = useCasosUrlState();
    const consulta = useCaso(casoId);
    const naoEncontrado = lerErroApi(consulta.error).status === 404;
@@ -112,14 +114,20 @@ export function PainelCaso({ renderAba, renderLateral, onVoltar }: PainelCasoPro
             }
          >
             {consulta.data ? (
-               <ConteudoCaso caso={consulta.data} renderAba={renderAba} renderLateral={renderLateral} onVoltar={onVoltar} />
+               <ConteudoCaso
+                  caso={consulta.data}
+                  renderAba={renderAba}
+                  renderLateral={renderLateral}
+                  renderIdentidade={renderIdentidade}
+                  onVoltar={onVoltar}
+               />
             ) : null}
          </AsyncState>
       </section>
    );
 }
 
-function ConteudoCaso({ caso, renderAba, renderLateral, onVoltar }: { caso: CasoDetalhe } & PainelCasoProps) {
+function ConteudoCaso({ caso, renderAba, renderLateral, renderIdentidade, onVoltar }: { caso: CasoDetalhe } & PainelCasoProps) {
    const { aba: abaUrl, setAba } = useCasosUrlState();
    const { data: me } = useMe();
    const agora = useAgora();
@@ -144,7 +152,7 @@ function ConteudoCaso({ caso, renderAba, renderLateral, onVoltar }: { caso: Caso
       <div className="scroll-slim min-h-0 flex-1 overflow-y-auto">
          <AnimatePresence mode="wait" initial={false}>
             <motion.div key={caso.id} variants={pageVariants} initial="initial" animate="animate" exit="exit">
-               <FaixaIdentidade caso={caso} onVoltar={onVoltar} />
+               <FaixaIdentidade caso={caso} onVoltar={onVoltar} extra={renderIdentidade?.(caso)} />
                <div
                   className={
                      renderLateral

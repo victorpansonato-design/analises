@@ -47,6 +47,7 @@ import type { TipoResposta } from "@/features/proposta";
 import { PAPEIS, usePapelSimuladoStore, type Papel } from "@/features/sessao";
 
 import { criarPrng, hash } from "@/mocks/lib/prng";
+import { tokenDoCaso } from "@/mocks/db/acompanhamento";
 import { analiseDoCaso, documentosDoCaso, notificar, registrarEvento } from "@/mocks/db/repositorio";
 import { calcularResumo, cobertura, contadoresDaAnalise, gerarAnalise, origemRepetida } from "@/mocks/db/analise";
 import { checklistCompleto, contadoresDocumentos } from "@/mocks/db/documentos";
@@ -251,6 +252,7 @@ export function montarDetalhe(c: CasoRegistro, u: UsuarioMock, agora: Date): Cas
       noGed: c.noGed,
       jornada: c.jornada.map(p => ({ etapa: p.etapa, entrouEm: p.entrouEm, saiuEm: p.saiuEm, por: resumoUsuario(p.porId) })),
       acoesDisponiveis: acoesPara(c, u, agora),
+      tokenAcompanhamento: tokenDoCaso(c),
       criadoEm: c.criadoEm,
       atualizadoEm: c.atualizadoEm,
    };

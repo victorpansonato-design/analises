@@ -68,6 +68,8 @@ export interface CasoRegistro {
    roteiro: RoteiroDemo | null;
    /** Caso de teste (motivo de cancelamento TESTE): fora dos indicadores. */
    teste: boolean;
+   /** Link público do aluno. Nasce com o protocolo; na semente, é derivado do id (`tokenDoCaso`). */
+   tokenAcompanhamento?: string;
 }
 
 export type RoteiroDemo = "ANALISE_45" | "COORDENACAO_2" | "AJUSTE" | "MATRICULA" | "DOCUMENTOS_1" | "NEGOCIACAO";

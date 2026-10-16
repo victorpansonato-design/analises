@@ -24,6 +24,7 @@ import {
    montarResumo,
    type ParametrosFila,
 } from "@/mocks/db/casos";
+import { espelharAcompanhamento } from "@/mocks/db/acompanhamento";
 import { valoresDoCaso } from "@/mocks/db/comunicacao";
 import { db } from "@/mocks/db/estado";
 import { documentosDoCaso, registrarEvento } from "@/mocks/db/repositorio";
@@ -96,6 +97,7 @@ export const handlersCasos = [
       const ctx = await preparar();
       const caso = casoOu404(params.casoId);
       if (caso instanceof Response) return caso;
+      espelharAcompanhamento(caso);
       return ok(montarDetalhe(caso, ctx.usuario, ctx.agora));
    }),
 

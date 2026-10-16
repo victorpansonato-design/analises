@@ -270,6 +270,11 @@ export const CasoDetalheSchema = CasoResumoSchema.extend({
    noGed: z.boolean(),
    jornada: z.array(PassoJornadaSchema),
    acoesDisponiveis: z.array(AcaoDisponivelSchema),
+   /**
+    * EXTENSÃO [VALIDAR com o TI]: token do link público de acompanhamento do aluno, gerado junto com
+    * o protocolo (`/acompanhe/{token}`). Aleatório e não adivinhável; não é o id nem o protocolo.
+    */
+   tokenAcompanhamento: z.string().optional(),
    criadoEm: IsoDate,
    atualizadoEm: IsoDate,
 });

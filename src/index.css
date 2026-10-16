@@ -759,6 +759,69 @@
 .caso-identidade .mat-nao {
    color: oklch(49% 0.2 27);
 }
+/* Link do aluno na faixa azul: os links ganham a mesma pílula dos botões da faixa. */
+.caso-identidade .botao-faixa {
+   background: rgb(0 0 0 / 12%);
+   color: white;
+}
+.caso-identidade .botao-faixa:hover {
+   background: rgb(0 0 0 / 20%);
+}
+.caso-identidade .link-aluno {
+   background: rgb(255 255 255 / 10%);
+}
+
+/* Acompanhamento do aluno (página pública). Azul da marca no topo; amarelo só como assinatura. */
+.topo-aluno {
+   background:
+      radial-gradient(120% 90% at 100% 0%, oklch(52% 0.17 255 / 85%) 0%, transparent 60%),
+      linear-gradient(160deg, var(--brand-blue) 0%, var(--brand-blue-strong) 100%);
+}
+.barra-assinatura {
+   background: var(--brand-yellow);
+}
+/* Controle da simulação (só com dados simulados): escuro e neutro, para não parecer parte da página. */
+.controle-simulacao {
+   background: oklch(22% 0.02 264 / 92%);
+   color: white;
+   box-shadow: 0 8px 24px -8px rgb(0 0 0 / 45%);
+}
+.selo-boas-vindas {
+   background: var(--brand-yellow);
+   color: var(--brand-blue-strong);
+}
+.confete-a {
+   background: var(--brand-yellow);
+}
+.confete-b {
+   background: white;
+}
+.confete-c {
+   background: oklch(78% 0.1 250);
+}
+.dark .logo-acompanhamento {
+   filter: brightness(0) invert(1);
+}
+.whatsapp-marca {
+   background: oklch(95% 0.05 155);
+   color: #1fa855;
+}
+.dark .whatsapp-marca {
+   background: oklch(30% 0.06 155);
+   color: #25d366;
+}
+.whatsapp-botao,
+.whatsapp-flutuante {
+   background: #25d366;
+   color: white;
+}
+.whatsapp-botao:hover,
+.whatsapp-flutuante:hover {
+   background: #1fb257;
+}
+.whatsapp-flutuante {
+   box-shadow: 0 8px 24px -6px rgb(18 140 74 / 55%);
+}
 .caso-etapa {
    background: var(--fila-cor);
    color: white;

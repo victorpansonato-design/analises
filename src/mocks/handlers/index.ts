@@ -1,4 +1,5 @@
 /** Registro de todos os handlers simulados. A ordem importa: rotas específicas antes de `/casos/:casoId`. */
+import { handlersAcompanhamento } from "@/mocks/handlers/acompanhamento";
 import { handlersAnalise } from "@/mocks/handlers/analise";
 import { handlersCasos } from "@/mocks/handlers/casos";
 import { handlersCatalogos } from "@/mocks/handlers/catalogos";
@@ -15,6 +16,7 @@ import { handlersSessao } from "@/mocks/handlers/sessao";
 import { handlersTimeline } from "@/mocks/handlers/timeline";
 
 export const handlers = [
+   ...handlersAcompanhamento,
    ...handlersDispensa,
    ...handlersMatrizCurricular,
    ...handlersSessao,

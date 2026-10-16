@@ -128,3 +128,12 @@ Actions pode rodar esses cinco comandos.
 - Parecer da coordenação: ao responder um item, o backend registra um evento `coordenacao.parecer` (categoria `NOTA`) com o parecer e o fundamento, que aparece nas observações.
 - `GET /me` devolve `acesso` (`TODOS` | `GESTAO` | `COORDENACAO`).
 - `ItemOrigem.codigo`: código da disciplina como está no histórico de origem (conferência lado a lado). As disciplinas de origem de instituições diferentes viram abas, pelo campo `ies`.
+
+## 9. Link de acompanhamento do aluno (16/10/2026) [VALIDAR com o TI: ainda fora do YAML]
+
+- Ao criar o protocolo, o backend gera um token aleatório e não adivinhável (não é id, CPF nem protocolo) e o devolve em `CasoDetalhe.tokenAcompanhamento`. A equipe copia o link `{origem}{VITE_BASE_URL}acompanhe/{token}` na faixa azul do caso.
+- `GET /publico/acompanhamento/:token` responde **sem sessão** (nada de 401 nem redirecionamento ao SSO) com `{ protocolo, primeiroNome, tipo, curso, situacao, aguardandoAluno, passos[], ra, atualizadoEm }`. 404 para token inexistente ou revogado. Schema em `src/features/acompanhamento/types/acompanhamento.schema.ts`.
+- A tradução etapa interna → passo do aluno está em `montarAcompanhamento` (`src/features/acompanhamento/domain/acompanhamento.ts`, testada). Coordenação, ajuste, pré-análise e responsáveis não saem; o RA só sai depois de `MATRICULADO`. CPF, celular e e-mail nunca saem.
+- A rota pública fica fora do `AuthProvider`: a página do aluno não consulta `/me`.
+- Recomendações: limitar requisições por IP no endpoint público, permitir revogar ou trocar o token e registrar acessos no log.
+- No simulado (MSW) cada aba tem o próprio banco; a resposta pública é espelhada no `localStorage` para a aba do aluno enxergar o que a equipe fez em outra aba. Isso some com a API real.

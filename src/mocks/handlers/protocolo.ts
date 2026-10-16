@@ -4,6 +4,7 @@ import { http } from "msw";
 import { ROTULO_TIPO_COMPLETO, type Tipo } from "@/features/casos";
 import type { NovoProtocolo } from "@/features/protocolo";
 
+import { gerarToken } from "@/mocks/db/acompanhamento";
 import { aplicarTransicao, montarDetalhe, montarResumo } from "@/mocks/db/casos";
 import { valoresDoCaso } from "@/mocks/db/comunicacao";
 import { db } from "@/mocks/db/estado";
@@ -167,6 +168,8 @@ export const handlersProtocolo = [
          roteiro: null,
          teste: false,
       };
+      // O link do aluno nasce com o protocolo.
+      caso.tokenAcompanhamento = gerarToken(`${caso.id}|${t}|${np.cpf}`);
       // Quem não é consultor também abre protocolo; o caso fica com ele no acompanhamento de documentos.
       caso.responsaveis.consultorId ??= ctx.usuario.id;
       db.casos.set(caso.id, caso);
